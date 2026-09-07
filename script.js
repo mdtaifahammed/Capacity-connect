@@ -28,7 +28,8 @@ function setLoading(form, loading){
 
 async function loadProfile(user){
   const {data, error}=await supabaseClient.from("profiles").select("id,full_name,email,role,approval_status,avatar_url").eq("id",user.id).single();
-  if(error || !data) throw new Error("Your account profile could not be loaded. Run auth_schema.sql in Supabase.");
+  if(error) throw new Error(`Profile lookup failed: ${error.message}. Run the latest auth_schema.sql in Supabase.`);
+  if(!data) throw new Error("No profile exists for this account. Run auth_schema.sql in Supabase, then check the profiles table.");
   authenticatedProfile=data;
   return data;
 }
