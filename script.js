@@ -27,13 +27,17 @@ function setLoading(form, loading){
 }
 
 async function loadProfile(user){
-  const {data, error}=await supabaseClient.from("profiles").select("id,full_name,email,role,avatar_url").eq("id",user.id).single();
+  const {data, error}=await supabaseClient.from("profiles").select("id,full_name,email,role,approval_status,avatar_url").eq("id",user.id).single();
   if(error || !data) throw new Error("Your account profile could not be loaded. Run auth_schema.sql in Supabase.");
   authenticatedProfile=data;
   return data;
 }
 
 function redirectForProfile(profile){
+  if(profile.role==="trainer" && profile.approval_status!=="approved"){
+    showLogin(`Trainer account status: ${profile.approval_status}. An administrator must approve this account before dashboard access.`);
+    return;
+  }
   const expected=Object.entries(routeForRole).find(([,path])=>location.pathname===path)?.[0];
   if(expected && expected!==profile.role){
     authMessage(`This account is not registered as a ${expected}. Redirecting to your dashboard.`);
@@ -45,6 +49,7 @@ function redirectForProfile(profile){
   document.getElementById("appShell").classList.remove("hidden");
   document.getElementById("userGreeting").textContent=`${profile.full_name || profile.email} · ${profile.role}`;
   document.body.dataset.role=profile.role;
+  showRoleDashboard(profile.role);
   const workspace=document.getElementById("roleWorkspace");
   const workspaceCopy={
     student:["Student workspace","Skill Gap Analyzer, personalized learning paths, projects, assessments, certifications and opportunity matching.","Continue learning"],
@@ -57,6 +62,8 @@ function redirectForProfile(profile){
 function showLogin(message=""){
   document.getElementById("appShell").classList.add("hidden");
   document.getElementById("authShell").classList.remove("hidden");
+  document.getElementById("trainerDashboard").classList.add("hidden");
+  document.getElementById("adminDashboard").classList.add("hidden");
   showAuthForm("loginForm");
   if(message) authMessage(message);
 }
@@ -71,6 +78,14 @@ async function handleSession(session){
   }
   try{ authenticatedUser=session.user; redirectForProfile(await loadProfile(session.user)); }
   catch(error){ await supabaseClient.auth.signOut(); showLogin(error.message); }
+}
+
+function showRoleDashboard(role){
+  document.getElementById("trainerDashboard").classList.toggle("hidden",role!=="trainer");
+  document.getElementById("adminDashboard").classList.toggle("hidden",role!=="admin");
+  document.querySelectorAll("main > section:not(#roleWorkspace):not(#trainerDashboard):not(#adminDashboard)").forEach(section=>section.classList.toggle("role-hidden",role!=="student"));
+  if(role==="trainer") loadTrainerDashboard();
+  if(role==="admin") loadAdminDashboard();
 }
 
 async function login(event){
@@ -128,6 +143,7 @@ function wireAuth(){
     input.type=visible?"password":"text";button.textContent=visible?"Show":"Hide";
   }));
   signupPassword.addEventListener("input",()=>{passwordStrength.textContent=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(signupPassword.value)?"Strong password":"Use 8+ characters with uppercase, lowercase and a number.";});
+  signupRole.addEventListener("change",()=>{if(signupRole.value==="admin"){signupRole.value="student";authMessage("Admin accounts can only be created or promoted by an existing administrator.");}});
   loginForm.addEventListener("submit",login); signupForm.addEventListener("submit",signup); resetForm.addEventListener("submit",resetPassword); updatePasswordForm.addEventListener("submit",updatePassword);
   signupLink.addEventListener("click",()=>showAuthForm("signupForm")); loginLink.addEventListener("click",()=>showAuthForm("loginForm"));
   forgotLink.addEventListener("click",()=>showAuthForm("resetForm")); resetBackLink.addEventListener("click",()=>showAuthForm("loginForm"));
@@ -146,7 +162,59 @@ async function apiFetch(path, options={}){
   return fetch(path,{...options,headers});
 }
 
+function dashboardStats(items){
+  return items.map(([label,value])=>`<div class="stat"><small>${label}</small><strong>${value}</strong></div>`).join("");
+}
+
+async function loadTrainerDashboard(){
+  const response=await apiFetch(`${API}/trainer/courses`);
+  if(!response.ok){document.getElementById("trainerStats").innerHTML=`<div class="panel dashboard-error">Unable to load trainer data.</div>`;return;}
+  const courses=await response.json();
+  document.getElementById("trainerStats").innerHTML=dashboardStats([["Total courses",courses.length],["Published",courses.filter(c=>c.status==="published").length],["Drafts",courses.filter(c=>c.status==="draft").length],["Pending review",courses.filter(c=>c.status==="pending").length]]);
+  document.getElementById("trainerActivity").innerHTML=`<h3>Recent activity</h3><p class="muted">${courses.length?"Your latest course updates are ready in My Courses.":"Create your first course to begin teaching."}</p>`;
+  renderTrainerCourses(courses);
+  document.getElementById("trainerProfileText").textContent=`Signed in as ${authenticatedProfile.full_name || authenticatedProfile.email}. Course ownership and publishing are enforced by the API.`;
+}
+
+function renderTrainerCourses(courses){
+  document.getElementById("trainerCourses").innerHTML=courses.length?courses.map(course=>`<article class="card course-card"><span class="badge">${course.status.toUpperCase()}</span><h3>${escapeHtml(course.title)}</h3><p class="muted">${escapeHtml(course.category)} · ${escapeHtml(course.difficulty)} · ${course.duration_minutes} min</p><p>${escapeHtml(course.description || "No description yet.")}</p><div class="course-actions"><button class="secondary" data-course-status="${course.id}" data-status="${course.status==="published"?"draft":"published"}">${course.status==="published"?"Unpublish":"Publish"}</button><button class="text-button" data-course-delete="${course.id}">Delete</button></div></article>`).join(""):"<div class=\"panel empty-state\"><h3>No courses yet</h3><p class=\"muted\">Create a draft course to get started.</p></div>";
+  document.querySelectorAll("[data-course-status]").forEach(button=>button.addEventListener("click",async()=>{await apiFetch(`${API}/trainer/courses/${button.dataset.courseStatus}/status`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:button.dataset.status})});loadTrainerDashboard();}));
+  document.querySelectorAll("[data-course-delete]").forEach(button=>button.addEventListener("click",async()=>{if(confirm("Delete this course?")){await apiFetch(`${API}/trainer/courses/${button.dataset.courseDelete}`,{method:"DELETE"});loadTrainerDashboard();}}));
+}
+
+async function loadAdminDashboard(){
+  const [overviewResponse,usersResponse,coursesResponse]=await Promise.all([apiFetch(`${API}/admin/overview`),apiFetch(`${API}/admin/users`),apiFetch(`${API}/trainer/courses`)]);
+  if(!overviewResponse.ok){document.getElementById("adminStats").innerHTML=`<div class="panel dashboard-error">Unable to load admin data.</div>`;return;}
+  const overview=await overviewResponse.json(); const users=await usersResponse.json(); const courses=await coursesResponse.json();
+  document.getElementById("adminStats").innerHTML=dashboardStats([["Students",overview.students],["Trainers",overview.trainers],["Admins",overview.admins],["Courses",overview.courses],["Published",overview.published_courses],["Pending trainers",overview.pending_trainers],["Enrollments",overview.enrollments],["Completion",`${overview.completion_rate}%`]]);
+  renderAdminUsers(users);renderAdminApprovals(users);document.getElementById("adminCourses").innerHTML=courses.length?courses.map(course=>`<p><b>${escapeHtml(course.title)}</b> · ${course.status} · ${course.category}</p>`).join(""):"<p class=\"muted\">No courses created yet.</p>";
+}
+
+function renderAdminUsers(users){
+  const render=filter=>{const visible=users.filter(user=>(`${user.full_name||""} ${user.email||""}`).toLowerCase().includes(filter.toLowerCase()));document.getElementById("adminUsers").innerHTML=visible.map(user=>`<div class="table-row"><span><b>${escapeHtml(user.full_name||"Unnamed")}</b><small>${escapeHtml(user.email||"")}</small></span><span class="badge">${user.role}</span><span>${user.approval_status}</span></div>`).join("")||"<p class=\"muted\">No matching users.</p>";};render("");userSearch.oninput=()=>render(userSearch.value);}
+
+function renderAdminApprovals(users){
+  const pending=users.filter(user=>user.role==="trainer"&&user.approval_status==="pending");document.getElementById("adminApprovals").innerHTML=pending.length?pending.map(user=>`<article class="card"><span class="badge">PENDING</span><h3>${escapeHtml(user.full_name||"Unnamed trainer")}</h3><p class="muted">${escapeHtml(user.email||"")}</p><button class="primary" data-approve-user="${user.id}">Approve trainer</button><button class="secondary" data-reject-user="${user.id}">Reject</button></article>`).join(""):"<div class=\"panel empty-state\"><h3>Approval queue is clear</h3><p class=\"muted\">No trainers are waiting for review.</p></div>";
+  document.querySelectorAll("[data-approve-user],[data-reject-user]").forEach(button=>button.addEventListener("click",async()=>{await apiFetch(`${API}/admin/users/${button.dataset.approveUser||button.dataset.rejectUser}/approval`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:button.dataset.approveUser?"approved":"rejected"})});loadAdminDashboard();}));
+}
+
+function escapeHtml(value){return String(value).replace(/[&<>'"]/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character]));}
+
+function wireDashboard(){
+  document.querySelectorAll("[data-trainer-view]").forEach(button=>button.addEventListener("click",()=>{const view=button.dataset.trainerView;document.querySelectorAll("#trainerDashboard .dashboard-view").forEach(item=>item.classList.add("hidden"));document.getElementById(`trainer${view[0].toUpperCase()+view.slice(1)}View`).classList.remove("hidden");}));
+  document.querySelectorAll("[data-admin-view]").forEach(button=>button.addEventListener("click",()=>{const view=button.dataset.adminView;document.querySelectorAll("#adminDashboard .dashboard-view").forEach(item=>item.classList.add("hidden"));document.getElementById(`admin${view[0].toUpperCase()+view.slice(1)}View`).classList.remove("hidden");}));
+  courseForm.addEventListener("submit",async event=>{event.preventDefault();const response=await apiFetch(`${API}/trainer/courses`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:courseTitle.value,description:courseDescription.value,category:courseCategory.value,difficulty:courseDifficulty.value,duration_minutes:Number(courseDuration.value)})});if(response.ok){courseForm.reset();loadTrainerDashboard();document.querySelector('[data-trainer-view="courses"]').click();}else{alert("Course could not be saved. Ensure your trainer account is approved.");}});
+}
+
+function wireBandwidth(){
+  const enabled=localStorage.getItem("capacity-connect-low-bandwidth")==="true";
+  document.body.classList.toggle("low-bandwidth",enabled);lowBandwidthToggle.checked=enabled;
+  lowBandwidthToggle.addEventListener("change",()=>{document.body.classList.toggle("low-bandwidth",lowBandwidthToggle.checked);localStorage.setItem("capacity-connect-low-bandwidth",String(lowBandwidthToggle.checked));});
+}
+
 wireAuth();
+wireDashboard();
+wireBandwidth();
 
 const roleSkills = {
   fullstack: {

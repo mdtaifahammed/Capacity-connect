@@ -36,7 +36,7 @@
       <label>Password<div class="password-field"><input id="signupPassword" type="password" autocomplete="new-password" required><button type="button" class="password-toggle" data-target="signupPassword" aria-label="Show password">Show</button></div></label>
       <div id="passwordStrength" class="password-strength">Use 8+ characters with uppercase, lowercase and a number.</div>
       <label>Confirm password<input id="signupConfirm" type="password" autocomplete="new-password" required></label>
-      <label>Account type<select id="signupRole"><option value="student">Student / Trainee</option><option value="trainer">Trainer</option></select></label>
+      <label>Account type<select id="signupRole"><option value="student">Student / Trainee</option><option value="trainer">Trainer (Pending Approval)</option><option value="admin" disabled>Admin (created by an administrator)</option></select></label>
       <button class="primary auth-submit" type="submit">Create account</button>
       <p class="auth-switch">Already registered? <button type="button" class="text-button" id="loginLink">Sign in</button></p>
     </form>
@@ -69,11 +69,30 @@
     <a href="#assessment">Assessment</a>
     <a href="#opportunities">Opportunities</a>
   </nav>
-  <div class="account-tools"><span id="userGreeting"></span><button id="logoutButton" class="secondary" type="button">Log out</button></div>
+  <div class="account-tools"><span id="userGreeting"></span><label class="bandwidth-toggle"><input id="lowBandwidthToggle" type="checkbox"> Low bandwidth</label><button id="logoutButton" class="secondary" type="button">Log out</button></div>
 </header>
 
 <main class="container">
   <section id="roleWorkspace" class="role-workspace panel"></section>
+  <section id="trainerDashboard" class="role-dashboard hidden">
+    <div class="dashboard-nav"><button class="dashboard-tab active" data-trainer-view="home">Overview</button><button class="dashboard-tab" data-trainer-view="courses">My Courses</button><button class="dashboard-tab" data-trainer-view="students">Students & Progress</button><button class="dashboard-tab" data-trainer-view="profile">Profile</button></div>
+    <div id="trainerHomeView" class="dashboard-view">
+      <div class="section-head"><div><p class="eyebrow">TRAINER CONSOLE</p><h2>Teach with evidence.</h2></div><button class="primary" data-trainer-view="create">Create course</button></div>
+      <div id="trainerStats" class="stats-grid"></div><div id="trainerActivity" class="panel dashboard-table"></div>
+    </div>
+    <div id="trainerCoursesView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">COURSE MANAGEMENT</p><h2>My courses</h2></div><button class="primary" data-trainer-view="create">New course</button></div><div id="trainerCourses" class="cards"></div></div>
+    <div id="trainerCreateView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">CONTENT BUILDER</p><h2>Create a course</h2></div></div><form id="courseForm" class="panel course-form"><label>Title<input id="courseTitle" required></label><label>Description<textarea id="courseDescription"></textarea></label><label>Category<input id="courseCategory" value="General"></label><label>Difficulty<select id="courseDifficulty"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label><label>Duration (minutes)<input id="courseDuration" type="number" min="0" value="60"></label><div><button class="primary" type="submit">Save draft</button><button class="secondary" type="button" data-trainer-view="courses">Cancel</button></div></form></div>
+    <div id="trainerStudentsView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">LEARNER PROGRESS</p><h2>Students & progress</h2></div></div><div id="trainerStudentTable" class="panel dashboard-table"><p class="muted">Student enrollment analytics will appear as learners enroll in your courses.</p></div></div>
+    <div id="trainerProfileView" class="dashboard-view hidden"><div class="panel"><h2>Trainer profile</h2><p id="trainerProfileText" class="muted"></p><span class="badge">Approved trainer</span></div></div>
+  </section>
+  <section id="adminDashboard" class="role-dashboard hidden">
+    <div class="dashboard-nav"><button class="dashboard-tab active" data-admin-view="overview">Overview</button><button class="dashboard-tab" data-admin-view="users">Users</button><button class="dashboard-tab" data-admin-view="approvals">Trainer approvals</button><button class="dashboard-tab" data-admin-view="courses">Courses</button><button class="dashboard-tab" data-admin-view="settings">Settings</button></div>
+    <div id="adminOverviewView" class="dashboard-view"><div class="section-head"><div><p class="eyebrow">ADMINISTRATION</p><h2>Platform overview.</h2></div></div><div id="adminStats" class="stats-grid"></div></div>
+    <div id="adminUsersView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">USER MANAGEMENT</p><h2>Users</h2></div><input id="userSearch" class="dashboard-search" placeholder="Search users"></div><div id="adminUsers" class="panel dashboard-table"></div></div>
+    <div id="adminApprovalsView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">APPROVAL QUEUE</p><h2>Trainer approvals</h2></div></div><div id="adminApprovals" class="cards"></div></div>
+    <div id="adminCoursesView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">COURSE GOVERNANCE</p><h2>Courses</h2></div></div><div id="adminCourses" class="panel dashboard-table"></div></div>
+    <div id="adminSettingsView" class="dashboard-view hidden"><div class="panel"><h2>System settings</h2><p class="muted">Platform controls are protected by admin authorization.</p></div></div>
+  </section>
   <section class="hero">
     <div>
       <p class="eyebrow">SMART LEARNING • COMPETENCY • OPPORTUNITIES</p>

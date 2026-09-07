@@ -11,6 +11,14 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
+alter table public.profiles
+  add column if not exists approval_status text not null default 'approved'
+    check (approval_status in ('pending', 'approved', 'rejected', 'disabled'));
+
+update public.profiles
+set approval_status = 'pending'
+where role = 'trainer' and approval_status = 'approved';
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -78,12 +86,13 @@ begin
     requested_role := 'student';
   end if;
 
-  insert into public.profiles (id, full_name, email, role)
+  insert into public.profiles (id, full_name, email, role, approval_status)
   values (
     new.id,
     nullif(new.raw_user_meta_data ->> 'full_name', ''),
     new.email,
-    requested_role
+    requested_role,
+    case when requested_role = 'trainer' then 'pending' else 'approved' end
   )
   on conflict (id) do update set email = excluded.email;
   return new;
@@ -94,6 +103,116 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
+
+create table if not exists public.courses (
+  id uuid primary key default gen_random_uuid(),
+  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  title text not null,
+  description text not null default '',
+  category text not null default 'General',
+  difficulty text not null default 'Beginner' check (difficulty in ('Beginner', 'Intermediate', 'Advanced')),
+  thumbnail_url text,
+  duration_minutes integer not null default 0 check (duration_minutes >= 0),
+  status text not null default 'draft' check (status in ('draft', 'pending', 'published', 'rejected')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.course_modules (
+  id uuid primary key default gen_random_uuid(),
+  course_id uuid not null references public.courses(id) on delete cascade,
+  title text not null,
+  position integer not null default 0
+);
+
+create table if not exists public.course_lessons (
+  id uuid primary key default gen_random_uuid(),
+  module_id uuid not null references public.course_modules(id) on delete cascade,
+  title text not null,
+  content text not null default '',
+  resource_url text,
+  resource_size_bytes bigint,
+  position integer not null default 0
+);
+
+create table if not exists public.enrollments (
+  id uuid primary key default gen_random_uuid(),
+  course_id uuid not null references public.courses(id) on delete cascade,
+  student_id uuid not null references public.profiles(id) on delete cascade,
+  progress numeric(5,2) not null default 0 check (progress between 0 and 100),
+  enrolled_at timestamptz not null default now(),
+  unique(course_id, student_id)
+);
+
+create table if not exists public.lesson_progress (
+  id uuid primary key default gen_random_uuid(),
+  lesson_id uuid not null references public.course_lessons(id) on delete cascade,
+  student_id uuid not null references public.profiles(id) on delete cascade,
+  completed boolean not null default false,
+  score numeric(5,2) check (score between 0 and 100),
+  updated_at timestamptz not null default now(),
+  unique(lesson_id, student_id)
+);
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  title text not null,
+  body text not null default '',
+  read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+drop trigger if exists courses_set_updated_at on public.courses;
+create trigger courses_set_updated_at before update on public.courses
+for each row execute function public.set_updated_at();
+
+alter table public.courses enable row level security;
+alter table public.course_modules enable row level security;
+alter table public.course_lessons enable row level security;
+alter table public.enrollments enable row level security;
+alter table public.lesson_progress enable row level security;
+alter table public.notifications enable row level security;
+
+drop policy if exists "published courses are readable" on public.courses;
+create policy "published courses are readable" on public.courses
+for select to authenticated using (status = 'published' or trainer_id = auth.uid() or public.is_admin());
+drop policy if exists "trainers create own courses" on public.courses;
+create policy "trainers create own courses" on public.courses
+for insert to authenticated with check (trainer_id = auth.uid() and exists (
+  select 1 from public.profiles where id = auth.uid() and role = 'trainer' and approval_status = 'approved'
+));
+drop policy if exists "trainers update own courses" on public.courses;
+create policy "trainers update own courses" on public.courses
+for update to authenticated using (trainer_id = auth.uid() or public.is_admin())
+with check (trainer_id = auth.uid() or public.is_admin());
+drop policy if exists "trainers delete own courses" on public.courses;
+create policy "trainers delete own courses" on public.courses
+for delete to authenticated using (trainer_id = auth.uid() or public.is_admin());
+
+drop policy if exists "course content access" on public.course_modules;
+create policy "course content access" on public.course_modules for all to authenticated
+using (exists (select 1 from public.courses c where c.id = course_id and (c.status = 'published' or c.trainer_id = auth.uid() or public.is_admin())))
+with check (exists (select 1 from public.courses c where c.id = course_id and (c.trainer_id = auth.uid() or public.is_admin())));
+drop policy if exists "lesson content access" on public.course_lessons;
+create policy "lesson content access" on public.course_lessons for all to authenticated
+using (exists (select 1 from public.course_modules m join public.courses c on c.id = m.course_id where m.id = module_id and (c.status = 'published' or c.trainer_id = auth.uid() or public.is_admin())))
+with check (exists (select 1 from public.course_modules m join public.courses c on c.id = m.course_id where m.id = module_id and (c.trainer_id = auth.uid() or public.is_admin())));
+
+drop policy if exists "enrollment access" on public.enrollments;
+create policy "enrollment access" on public.enrollments for all to authenticated
+using (student_id = auth.uid() or exists (select 1 from public.courses c where c.id = course_id and c.trainer_id = auth.uid()) or public.is_admin())
+with check (student_id = auth.uid() or public.is_admin());
+drop policy if exists "progress access" on public.lesson_progress;
+create policy "progress access" on public.lesson_progress for all to authenticated
+using (student_id = auth.uid() or public.is_admin()) with check (student_id = auth.uid() or public.is_admin());
+drop policy if exists "notification access" on public.notifications;
+create policy "notification access" on public.notifications for all to authenticated
+using (user_id = auth.uid() or public.is_admin()) with check (user_id = auth.uid() or public.is_admin());
+
+create index if not exists courses_trainer_id_idx on public.courses(trainer_id);
+create index if not exists courses_status_idx on public.courses(status);
+create index if not exists enrollments_student_id_idx on public.enrollments(student_id);
 
 insert into public.profiles (id, email)
 select id, email from auth.users

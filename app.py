@@ -40,6 +40,23 @@ class Effectiveness(BaseModel):
     path: float = Field(ge=0, le=100)
     retention: float = Field(ge=0, le=100)
 
+class CourseInput(BaseModel):
+    title: str
+    description: str = ""
+    category: str = "General"
+    difficulty: str = "Beginner"
+    thumbnail_url: str | None = None
+    duration_minutes: int = Field(default=0, ge=0)
+
+class CourseStatus(BaseModel):
+    status: str
+
+class ApprovalInput(BaseModel):
+    status: str
+
+class RoleInput(BaseModel):
+    role: str
+
 def current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer)):
     if not credentials:
         raise HTTPException(status_code=401, detail="Authentication required")
@@ -52,9 +69,27 @@ def current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer)):
         raise HTTPException(status_code=401, detail="Invalid or expired session")
     return user
 
+def user_profile(user):
+    result = supabase.table("profiles").select("id,full_name,email,role,approval_status").eq("id", user.id).single().execute()
+    if not result.data:
+        raise HTTPException(status_code=403, detail="Profile not found")
+    return result.data
+
+def require_role(user, *roles, approved_trainer=False):
+    profile = user_profile(user)
+    if profile["role"] not in roles:
+        raise HTTPException(status_code=403, detail="You are not authorized for this action")
+    if approved_trainer and (profile.get("approval_status") != "approved"):
+        raise HTTPException(status_code=403, detail="Trainer approval is required")
+    return profile
+
 @app.get("/api/health")
 def health():
     return {"status": "ok", "service": "Capacity Connect", "backend": "Supabase"}
+
+@app.get("/api/me")
+def me(user=Depends(current_user)):
+    return user_profile(user)
 
 @app.get("/api/roles")
 def roles():
@@ -86,6 +121,102 @@ def effectiveness(data: Effectiveness):
 def trainers():
     r = supabase.table("trainer_quality").select("*").order("quality_score", desc=True).execute()
     return r.data or []
+
+@app.get("/api/trainer/courses")
+def trainer_courses(user=Depends(current_user)):
+    profile = require_role(user, "trainer", "admin", approved_trainer=True)
+    query = supabase.table("courses").select("*").order("updated_at", desc=True)
+    if profile["role"] == "trainer":
+        query = query.eq("trainer_id", user.id)
+    result = query.execute()
+    return result.data or []
+
+@app.post("/api/trainer/courses")
+def create_course(data: CourseInput, user=Depends(current_user)):
+    require_role(user, "trainer", approved_trainer=True)
+    if data.difficulty not in {"Beginner", "Intermediate", "Advanced"}:
+        raise HTTPException(status_code=422, detail="Invalid difficulty")
+    payload = data.model_dump()
+    payload["trainer_id"] = user.id
+    result = supabase.table("courses").insert(payload).execute()
+    return result.data[0] if result.data else {}
+
+@app.patch("/api/trainer/courses/{course_id}")
+def update_course(course_id: str, data: CourseInput, user=Depends(current_user)):
+    profile = require_role(user, "trainer", "admin", approved_trainer=True)
+    query = supabase.table("courses").update(data.model_dump()).eq("id", course_id)
+    if profile["role"] == "trainer":
+        query = query.eq("trainer_id", user.id)
+    result = query.execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Course not found or not owned by you")
+    return result.data[0]
+
+@app.post("/api/trainer/courses/{course_id}/status")
+def update_course_status(course_id: str, data: CourseStatus, user=Depends(current_user)):
+    profile = require_role(user, "trainer", "admin", approved_trainer=True)
+    if data.status not in {"draft", "pending", "published", "rejected"}:
+        raise HTTPException(status_code=422, detail="Invalid course status")
+    query = supabase.table("courses").update({"status": data.status}).eq("id", course_id)
+    if profile["role"] == "trainer":
+        query = query.eq("trainer_id", user.id)
+    result = query.execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Course not found or not owned by you")
+    return result.data[0]
+
+@app.delete("/api/trainer/courses/{course_id}")
+def delete_course(course_id: str, user=Depends(current_user)):
+    profile = require_role(user, "trainer", "admin", approved_trainer=True)
+    query = supabase.table("courses").delete().eq("id", course_id)
+    if profile["role"] == "trainer":
+        query = query.eq("trainer_id", user.id)
+    result = query.execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Course not found or not owned by you")
+    return {"deleted": True}
+
+@app.get("/api/admin/overview")
+def admin_overview(user=Depends(current_user)):
+    require_role(user, "admin")
+    profiles = supabase.table("profiles").select("role,approval_status").execute().data or []
+    courses = supabase.table("courses").select("status").execute().data or []
+    enrollments = supabase.table("enrollments").select("progress").execute().data or []
+    return {
+        "students": sum(row["role"] == "student" for row in profiles),
+        "trainers": sum(row["role"] == "trainer" for row in profiles),
+        "admins": sum(row["role"] == "admin" for row in profiles),
+        "pending_trainers": sum(row["role"] == "trainer" and row.get("approval_status") == "pending" for row in profiles),
+        "courses": len(courses),
+        "published_courses": sum(row["status"] == "published" for row in courses),
+        "enrollments": len(enrollments),
+        "completion_rate": round(sum(float(row["progress"]) for row in enrollments) / len(enrollments)) if enrollments else 0,
+    }
+
+@app.get("/api/admin/users")
+def admin_users(user=Depends(current_user)):
+    require_role(user, "admin")
+    return supabase.table("profiles").select("id,full_name,email,role,approval_status,created_at").order("created_at", desc=True).execute().data or []
+
+@app.post("/api/admin/users/{user_id}/approval")
+def update_trainer_approval(user_id: str, data: ApprovalInput, user=Depends(current_user)):
+    require_role(user, "admin")
+    if data.status not in {"approved", "rejected", "disabled"}:
+        raise HTTPException(status_code=422, detail="Invalid approval status")
+    result = supabase.table("profiles").update({"approval_status": data.status}).eq("id", user_id).eq("role", "trainer").execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    return result.data[0]
+
+@app.post("/api/admin/users/{user_id}/role")
+def update_user_role(user_id: str, data: RoleInput, user=Depends(current_user)):
+    require_role(user, "admin")
+    if data.role not in {"student", "trainer", "admin"} or user_id == user.id:
+        raise HTTPException(status_code=422, detail="Invalid role change")
+    result = supabase.table("profiles").update({"role": data.role, "approval_status": "pending" if data.role == "trainer" else "approved"}).eq("id", user_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result.data[0]
 
 # Knowledge-base search. Documents/chunks are stored in Supabase.
 # If pgvector/RAG is added later, replace this simple text search with a match_documents RPC.
