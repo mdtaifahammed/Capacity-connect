@@ -113,7 +113,7 @@ async function signup(event){
   setLoading(form,false);
   if(error){authMessage(error.message);return;}
   if(data.session) redirectForProfile(await loadProfile(data.user));
-  else {showLogin();authMessage("Account created successfully. Please verify your email before logging in.","success");}
+  else {showLogin();authMessage(`Account created successfully. Check ${signupEmail.value.trim()} for the confirmation email, click its link, then sign in.`,"success");}
 }
 
 async function resetPassword(event){
