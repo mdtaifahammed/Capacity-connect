@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capacity Connect</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section id="authShell" class="auth-shell" aria-live="polite">
+  <div class="auth-panel">
+    <div class="auth-brand">Capacity<span>Connect</span></div>
+    <div id="authNotice" class="auth-notice" role="alert"></div>
+
+    <form id="loginForm" class="auth-form">
+      <p class="eyebrow">WELCOME BACK</p>
+      <h1>Build capacity. Prove impact.</h1>
+      <p class="muted">Sign in to continue your learning journey.</p>
+      <div class="role-picker" role="tablist" aria-label="Account role">
+        <button type="button" class="role-tab active" data-login-role="student">Student</button>
+        <button type="button" class="role-tab" data-login-role="trainer">Trainer</button>
+        <button type="button" class="role-tab" data-login-role="admin">Admin</button>
+      </div>
+      <label>Email<input id="loginEmail" type="email" autocomplete="email" required></label>
+      <label>Password<div class="password-field"><input id="loginPassword" type="password" autocomplete="current-password" required><button type="button" class="password-toggle" data-target="loginPassword" aria-label="Show password">Show</button></div></label>
+      <div class="auth-options"><label class="check-label"><input id="rememberMe" type="checkbox" checked> Remember me</label><button type="button" class="text-button" id="forgotLink">Forgot password?</button></div>
+      <button class="primary auth-submit" type="submit">Sign in</button>
+      <p class="auth-switch">New to Capacity Connect? <button type="button" class="text-button" id="signupLink">Create an account</button></p>
+    </form>
+
+    <form id="signupForm" class="auth-form hidden">
+      <p class="eyebrow">JOIN THE PLATFORM</p><h1>Create your account.</h1>
+      <p class="muted">Start building verified capability today.</p>
+      <label>Full name<input id="signupName" type="text" autocomplete="name" required></label>
+      <label>Email<input id="signupEmail" type="email" autocomplete="email" required></label>
+      <label>Password<div class="password-field"><input id="signupPassword" type="password" autocomplete="new-password" required><button type="button" class="password-toggle" data-target="signupPassword" aria-label="Show password">Show</button></div></label>
+      <div id="passwordStrength" class="password-strength">Use 8+ characters with uppercase, lowercase and a number.</div>
+      <label>Confirm password<input id="signupConfirm" type="password" autocomplete="new-password" required></label>
+      <label>Account type<select id="signupRole"><option value="student">Student / Trainee</option><option value="trainer">Trainer</option></select></label>
+      <button class="primary auth-submit" type="submit">Create account</button>
+      <p class="auth-switch">Already registered? <button type="button" class="text-button" id="loginLink">Sign in</button></p>
+    </form>
+
+    <form id="resetForm" class="auth-form hidden">
+      <p class="eyebrow">ACCOUNT RECOVERY</p><h1>Reset your password.</h1>
+      <p class="muted">We will send a secure recovery link to your email.</p>
+      <label>Email<input id="resetEmail" type="email" autocomplete="email" required></label>
+      <button class="primary auth-submit" type="submit">Send recovery link</button>
+      <p class="auth-switch"><button type="button" class="text-button" id="resetBackLink">Back to sign in</button></p>
+    </form>
+
+    <form id="updatePasswordForm" class="auth-form hidden">
+      <p class="eyebrow">RECOVERY SESSION</p><h1>Choose a new password.</h1>
+      <p class="muted">Your recovery link is valid. Create a strong password to continue.</p>
+      <label>New password<input id="newPassword" type="password" autocomplete="new-password" required></label>
+      <label>Confirm new password<input id="newPasswordConfirm" type="password" autocomplete="new-password" required></label>
+      <button class="primary auth-submit" type="submit">Update password</button>
+    </form>
+  </div>
+</section>
+
+<div id="appShell" class="app-shell hidden">
+<header class="topbar">
+  <div class="brand">Capacity<span>Connect</span></div>
+  <nav>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#skill-gap">Skill Gap</a>
+    <a href="#path">Learning Path</a>
+    <a href="#assessment">Assessment</a>
+    <a href="#opportunities">Opportunities</a>
+  </nav>
+  <div class="account-tools"><span id="userGreeting"></span><button id="logoutButton" class="secondary" type="button">Log out</button></div>
+</header>
+
+<main class="container">
+  <section id="roleWorkspace" class="role-workspace panel"></section>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">SMART LEARNING • COMPETENCY • OPPORTUNITIES</p>
+      <h1>Turn learning into <span>verified capability.</span></h1>
+      <p>Capacity Connect identifies skill gaps, creates a personalized learning path, measures learning effectiveness, evaluates practical skills, generates competency certificates and matches learners with opportunities.</p>
+      <button class="primary" onclick="scrollToId('skill-gap')">Start Skill Analysis</button>
+    </div>
+    <div class="hero-card">
+      <div class="score-ring"><strong id="heroScore">0%</strong><small>effectiveness</small></div>
+      <p>Learning Effectiveness</p>
+    </div>
+  </section>
+
+  <section id="dashboard" class="stats-grid">
+    <div class="stat"><small>Current competency</small><strong id="currentScore">0%</strong></div>
+    <div class="stat"><small>Skill gap</small><strong id="gapScore">0%</strong></div>
+    <div class="stat"><small>Path progress</small><strong id="pathProgress">0%</strong></div>
+    <div class="stat"><small>Practical score</small><strong id="practicalScore">0%</strong></div>
+  </section>
+
+  <section id="skill-gap" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">01 • SKILL-GAP ANALYZER</p><h2>What do you need to learn?</h2></div>
+      <p>Enter your target role and current skill levels. The engine compares them with the competency requirements.</p>
+    </div>
+    <div class="panel">
+      <label>Target role
+        <select id="targetRole">
+          <option value="fullstack">Full Stack Developer</option>
+          <option value="frontend">Frontend Developer</option>
+          <option value="backend">Backend Developer</option>
+          <option value="data">Data Analyst</option>
+        </select>
+      </label>
+      <div id="skillsForm" class="skills-form"></div>
+      <button class="primary" onclick="analyzeSkills()">Analyze My Skill Gap</button>
+    </div>
+    <div id="gapResults" class="results"></div>
+  </section>
+
+  <section id="path" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">02 • PERSONALIZED PATH</p><h2>Your learning path</h2></div>
+      <p>Weak skills are prioritized automatically. Strong skills are skipped or given lightweight revision.</p>
+    </div>
+    <div id="learningPath" class="timeline"></div>
+  </section>
+
+  <section id="project" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">07 • PROJECT-BASED LEARNING</p><h2>Learn → Practice → Build → Prove</h2></div>
+    </div>
+    <div id="projects" class="cards"></div>
+  </section>
+
+  <section id="assessment" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">03 • PRACTICAL ASSESSMENT</p><h2>Prove the skill</h2></div>
+      <p>Course completion is not enough. Solve a practical task and pass automated tests.</p>
+    </div>
+    <div class="assessment panel">
+      <div class="question">
+        <span class="badge">JavaScript Challenge</span>
+        <h3>Write a function that returns the largest number in an array.</h3>
+        <pre>largest([3, 9, 2, 7]) → 9</pre>
+        <textarea id="codeAnswer" placeholder="function largest(arr) {
+  // your solution
+}"></textarea>
+        <button class="primary" onclick="submitPractical()">Run Practical Test</button>
+      </div>
+      <div id="assessmentResult" class="assessment-result">
+        <strong>Waiting for submission</strong>
+        <p>Your practical score will appear here.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="certificate" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">04 • COMPETENCY CERTIFICATE</p><h2>Certificate based on demonstrated skill</h2></div>
+    </div>
+    <div class="certificate panel">
+      <div>
+        <span class="badge">VERIFIED COMPETENCY</span>
+        <h2 id="certTitle">Complete the assessment to unlock</h2>
+        <p id="certText">A certificate is issued only when the learner satisfies the competency threshold.</p>
+      </div>
+      <button id="certBtn" class="secondary" disabled onclick="downloadCertificate()">Download Certificate</button>
+    </div>
+  </section>
+
+  <section id="opportunities" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">05 • SKILL → OPPORTUNITY</p><h2>Opportunities matched to your verified skills</h2></div>
+    </div>
+    <div id="opportunitiesList" class="cards"></div>
+  </section>
+
+  <section id="effectiveness" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">09 • LEARNING EFFECTIVENESS</p><h2>Are you actually improving?</h2></div>
+      <p>The score combines competency, practical performance, project progress and retention evidence.</p>
+    </div>
+    <div class="effectiveness panel">
+      <div class="big-score"><span id="effectivenessScore">0</span><small>/100</small></div>
+      <div class="meter"><div id="effectivenessBar"></div></div>
+      <div id="effectivenessBreakdown" class="breakdown"></div>
+    </div>
+  </section>
+
+  <section id="trainer" class="section">
+    <div class="section-head">
+      <div><p class="eyebrow">14 • TRAINER QUALITY</p><h2>Competency-aware trainer quality</h2></div>
+      <p>Trainer quality is based on learner improvement, practical outcomes, completion and feedback—not only ratings.</p>
+    </div>
+    <div id="trainerCards" class="cards"></div>
+  </section>
+</main>
+
+<footer>Capacity Connect • SIH 2026 prototype</footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
