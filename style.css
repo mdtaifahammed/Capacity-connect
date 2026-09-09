@@ -1434,3 +1434,372 @@ a:hover { text-decoration: underline; }
 .low-bandwidth .modal-box      { animation: none; }
 .low-bandwidth .opp-card:hover { transform: none; }
 .low-bandwidth .btn:hover      { transform: none; }
+
+/* === 25. HAMBURGER MOBILE MENU ========================== */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--fg);
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .hamburger { display: block; }
+  .nav-right {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    padding: 12px 16px;
+    gap: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.15);
+    z-index: 999;
+  }
+  .nav-mobile-open .nav-right {
+    display: flex !important;
+  }
+  .nav-btn {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  .nav-btn:hover { background: var(--hover); }
+  .bw-toggle-wrap { justify-content: flex-start; }
+}
+
+/* === 26. ADMIN DASHBOARD ================================ */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 60px);
+}
+
+.admin-sidebar {
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-sidebar-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+
+.admin-sidebar-name {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.admin-sidebar-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: .85rem;
+  color: var(--muted2);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.admin-sidebar-btn:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+.admin-sidebar-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.admin-main {
+  padding: 32px 40px;
+  overflow-y: auto;
+}
+
+.admin-view { display: none; }
+.admin-view.active { display: block; }
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.announcement-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.announcement-card h4 { margin-bottom: 6px; color: var(--fg); }
+.announcement-card p { font-size: .85rem; color: var(--muted2); margin: 0; }
+.announcement-card small { color: var(--muted); font-size: .75rem; }
+
+.analytics-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.analytics-card h4 { margin-bottom: 16px; color: var(--fg); }
+
+.analytics-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.analytics-bar-label {
+  width: 140px;
+  font-size: .82rem;
+  color: var(--muted2);
+  flex-shrink: 0;
+}
+
+.analytics-bar-value {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--fg);
+  width: 45px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.approved { background: rgba(16,185,129,.15); color: var(--green); }
+.status-badge.pending  { background: rgba(245,158,11,.15); color: var(--warn); }
+.status-badge.rejected { background: rgba(239,68,68,.15); color: var(--danger); }
+.status-badge.disabled { background: rgba(107,114,128,.15); color: var(--muted); }
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+.role-badge.student { background: var(--accent-bg); color: var(--accent); }
+.role-badge.trainer { background: rgba(139,92,246,.15); color: #8b5cf6; }
+.role-badge.admin   { background: rgba(239,68,68,.15); color: var(--danger); }
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    gap: 6px;
+  }
+  .admin-sidebar-brand, .admin-sidebar-name { display: none; }
+  .admin-sidebar-btn { white-space: nowrap; padding: 8px 14px; }
+  .admin-main { padding: 24px 20px; }
+  .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 520px) {
+  .admin-stats-grid { grid-template-columns: 1fr 1fr; }
+  .announcement-card { flex-direction: column; }
+}
+
+/* === 27. TRAINER COURSE MANAGEMENT ====================== */
+.course-card-trainer {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.course-card-trainer h4 { margin-bottom: 4px; }
+.course-card-trainer p { font-size: .82rem; color: var(--muted2); margin: 0; }
+.course-card-trainer .course-meta { font-size: .75rem; color: var(--muted); margin-top: 6px; }
+
+.course-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* === 28. COMPETENCY MAPPING ============================= */
+.competency-match-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.competency-match-card h4 {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.competency-match-card .match-role {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.gap-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 500;
+  margin: 3px 4px 3px 0;
+}
+
+.gap-chip.teachable {
+  background: rgba(16,185,129,.12);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,.25);
+}
+
+.gap-chip.outside {
+  background: var(--hover);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.match-score-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 700;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* === 29. TOAST NOTIFICATIONS ============================ */
+.toast-container {
+  position: fixed;
+  top: 76px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: .85rem;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+  animation: toastIn .3s ease;
+  pointer-events: auto;
+  max-width: 360px;
+}
+
+.toast.success { background: var(--green); }
+.toast.error   { background: var(--danger); }
+.toast.info    { background: var(--accent); }
+
+.toast.fade-out { animation: toastOut .3s ease forwards; }
+
+@keyframes toastIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes toastOut {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(100%); opacity: 0; }
+}
+
+/* === 30. ADDITIONAL RESPONSIVE FIXES ==================== */
+@media (max-width: 768px) {
+  .trainer-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .quality-score-main { flex-direction: column; }
+  .hero-section { padding: 40px 5% 30px; }
+  .hero-section h1 { font-size: 1.8rem; }
+  .how-steps { grid-template-columns: 1fr 1fr; }
+  .gap-grid { grid-template-columns: 1fr; }
+  .opportunities-grid { grid-template-columns: 1fr; }
+  .effectiveness-main { flex-direction: column; }
+  .eff-score-ring { margin-bottom: 16px; }
+}
+
+/* Table overflow fix for mobile */
+.panel > table,
+.panel > div > table {
+  min-width: 600px;
+}
+
+.panel {
+  overflow-x: auto;
+}
+
+/* Ultra-wide screen constraint */
+@media (min-width: 1600px) {
+  .hero-section,
+  .screen-content,
+  .admin-main,
+  .trainer-main {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Fix modal on very small screens */
+@media (max-width: 380px) {
+  .modal-box { padding: 24px 16px; margin: 16px; }
+  .competency-breakdown { grid-template-columns: 1fr; }
+  .demo-role-btn { padding: 16px 12px; }
+}
+

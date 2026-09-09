@@ -19,13 +19,17 @@
 <nav id="global-nav" class="hidden">
   <div class="nav-brand" onclick="CC.go('landing')">Capacity<span>Connect</span></div>
   <div class="nav-links">
+    <button class="hamburger hidden" id="hamburger-btn" onclick="CC.toggleMobileNav()" aria-label="Menu">☰</button>
     <button onclick="CC.go('student')"       id="nav-student"   class="hidden">Dashboard</button>
     <button onclick="CC.go('assessment')"    id="nav-assess"    class="hidden">Assessment</button>
     <button onclick="CC.go('skill-gap')"     id="nav-gap"       class="hidden">Skill Gap</button>
     <button onclick="CC.go('learning-path')" id="nav-path"      class="hidden">Learning Path</button>
+    <button class="nav-btn hidden" id="nav-project" onclick="CC.go('project')">Project</button>
+    <button class="nav-btn hidden" id="nav-practical" onclick="CC.go('practical')">Practical</button>
     <button onclick="CC.go('passport')"      id="nav-passport"  class="hidden">Passport</button>
     <button onclick="CC.go('opportunities')" id="nav-opps"      class="hidden">Opportunities</button>
     <button onclick="CC.go('trainer')"       id="nav-trainer"   class="hidden">Trainer</button>
+    <button class="nav-btn hidden" id="nav-admin" onclick="CC.go('admin')">Admin</button>
   </div>
   <div class="nav-tools">
     <label class="bw-toggle" title="Reduce animations and API calls">
@@ -257,6 +261,12 @@
       </div>
     </button>
 
+    <button class="demo-role-btn" onclick="CC.enterDemo('admin')">
+      <div class="demo-role-icon">🛡️</div>
+      <div class="demo-role-title">Continue as Admin</div>
+      <div class="demo-role-sub">Platform management · User approvals · Analytics</div>
+    </button>
+
     <p style="font-size:.72rem;color:var(--muted);margin-top:16px;text-align:center">
       Demo mode is for presentation only. Real authentication is available via Login.
     </p>
@@ -276,7 +286,7 @@
             Target Role: <strong id="student-role">Full Stack Developer</strong>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="CC.go('assessment')">Continue Journey →</button>
+        <button class="btn btn-primary" onclick="CC.continueJourney()">Continue Journey →</button>
       </div>
     </div>
   </div>
@@ -647,6 +657,8 @@
       <button class="sidebar-btn" onclick="CC.trainerTab('projects')">📁 Project Reviews</button>
       <button class="sidebar-btn" onclick="CC.trainerTab('feedback')">💬 Feedback</button>
       <button class="sidebar-btn" onclick="CC.trainerTab('quality')">⭐ Trainer Quality</button>
+      <button class="sidebar-btn" onclick="CC.trainerTab('courses')">📚 My Courses</button>
+      <button class="sidebar-btn" onclick="CC.trainerTab('competency')">🎯 Competency Map</button>
     </div>
   </div>
 
@@ -772,6 +784,135 @@
         <p style="font-size:.85rem;color:var(--muted2)">
           <strong style="color:var(--accent)">Quality = Outcome.</strong> Your score is based on learner improvement, not just ratings. A trainer who helps students go from 40 → 78 in REST API outscores one with a 5-star review but no skill gains.
         </p>
+      </div>
+    </div>
+
+    <!-- Courses -->
+    <div class="trainer-view hidden" id="tv-courses">
+      <span class="eyebrow">COURSE MANAGEMENT</span>
+      <h2 class="mb-24">My Courses</h2>
+      <div class="panel mb-24" style="max-width:600px">
+        <h4 class="mb-16">Create New Course</h4>
+        <div class="form-group">
+          <label class="form-label">Course Title</label>
+          <input class="form-input" id="course-title" type="text" placeholder="e.g. Python Backend Masterclass">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="course-desc" placeholder="Describe what learners will gain..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Difficulty</label>
+            <select class="form-input" id="course-difficulty">
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (hours)</label>
+            <input class="form-input" id="course-duration" type="number" value="4" min="1">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="CC.createCourse()">Create Course</button>
+      </div>
+      <div id="trainer-course-list"></div>
+    </div>
+
+    <!-- Competency Mapping -->
+    <div class="trainer-view hidden" id="tv-competency">
+      <span class="eyebrow">TRAINER-LEARNER COMPETENCY MAPPING</span>
+      <h2 class="mb-24">Your Impact Areas</h2>
+      <div class="panel mb-24">
+        <p style="font-size:.88rem;color:var(--muted2)">This view shows which of your learners have skill gaps that match your expertise. Capacity Connect recommends you as their <strong>best trainer match</strong> based on overlap between your teaching strengths and their competency gaps.</p>
+      </div>
+      <div id="competency-match-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: ADMIN DASHBOARD
+     ====================================================== -->
+<section id="screen-admin" class="hidden">
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div class="admin-sidebar-brand">🛡️ Admin Console</div>
+      <div class="admin-sidebar-name">Platform Management</div>
+      <div class="sidebar-nav">
+        <button class="admin-sidebar-btn active" onclick="CC.adminTab('overview')">📊 Overview</button>
+        <button class="admin-sidebar-btn" onclick="CC.adminTab('users')">👥 Users</button>
+        <button class="admin-sidebar-btn" onclick="CC.adminTab('announcements')">📢 Announcements</button>
+        <button class="admin-sidebar-btn" onclick="CC.adminTab('analytics')">📈 Analytics</button>
+      </div>
+    </div>
+
+    <div class="admin-main">
+      <!-- Overview -->
+      <div class="admin-view active" id="av-overview">
+        <div class="flex justify-between align-center mb-24">
+          <div>
+            <span class="eyebrow">ADMIN CONSOLE</span>
+            <h2>Platform Overview</h2>
+            <p>Capacity Connect — SIH 2026</p>
+          </div>
+        </div>
+        <div class="admin-stats-grid">
+          <div class="stat-card"><small>Total Users</small><strong id="admin-stat-users">156</strong></div>
+          <div class="stat-card"><small>Active Learners</small><strong id="admin-stat-learners">89</strong></div>
+          <div class="stat-card"><small>Trainers</small><strong id="admin-stat-trainers">12</strong></div>
+          <div class="stat-card"><small>Courses</small><strong id="admin-stat-courses">8</strong></div>
+          <div class="stat-card"><small>Assessments Taken</small><strong id="admin-stat-assessments">340</strong></div>
+          <div class="stat-card"><small>Certifications</small><strong id="admin-stat-certs">23</strong></div>
+          <div class="stat-card"><small>Avg Completion</small><strong id="admin-stat-completion">74%</strong></div>
+          <div class="stat-card"><small>Avg Readiness</small><strong id="admin-stat-readiness">68%</strong></div>
+        </div>
+        <div class="panel mt-24">
+          <h3 class="mb-16">Quick Actions</h3>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="CC.adminTab('users')">Manage Users</button>
+            <button class="btn btn-secondary btn-sm" onclick="CC.adminTab('announcements')">Post Announcement</button>
+            <button class="btn btn-ghost btn-sm" onclick="CC.adminTab('analytics')">View Analytics</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div class="admin-view hidden" id="av-users">
+        <span class="eyebrow">USER MANAGEMENT</span>
+        <h2 class="mb-24">All Users</h2>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="learner-table" id="admin-user-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements -->
+      <div class="admin-view hidden" id="av-announcements">
+        <span class="eyebrow">ANNOUNCEMENTS</span>
+        <h2 class="mb-24">Platform Announcements</h2>
+        <div class="panel mb-24" style="max-width:600px">
+          <h4 class="mb-16">Create Announcement</h4>
+          <div class="form-group">
+            <label class="form-label">Title</label>
+            <input class="form-input" id="ann-title" type="text" placeholder="Announcement title">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Body</label>
+            <textarea class="form-textarea" id="ann-body" placeholder="Announcement details..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="CC.createAnnouncement()">Publish Announcement</button>
+        </div>
+        <div id="announcements-list"></div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="admin-view hidden" id="av-analytics">
+        <span class="eyebrow">PLATFORM ANALYTICS</span>
+        <h2 class="mb-24">Analytics Dashboard</h2>
+        <div id="analytics-content"></div>
       </div>
     </div>
   </div>

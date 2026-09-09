@@ -419,3 +419,44 @@ insert into public.opportunities (title, company, type, description, required_sk
 )
 on conflict do nothing;
 
+-- =============================================================================
+-- ADDITIONAL MVP TABLES
+-- =============================================================================
+
+-- Trainer feedback (referenced by app.py but was missing)
+create table if not exists public.trainer_feedback (
+  id uuid primary key default gen_random_uuid(),
+  trainer_name text not null,
+  learner_name text not null,
+  rating numeric(3,1) not null check (rating between 1 and 5),
+  comment text not null default '',
+  created_at timestamptz default now()
+);
+
+alter table public.trainer_feedback enable row level security;
+drop policy if exists "public read feedback" on public.trainer_feedback;
+create policy "public read feedback" on public.trainer_feedback for select using (true);
+drop policy if exists "demo insert feedback" on public.trainer_feedback;
+create policy "demo insert feedback" on public.trainer_feedback for insert with check (true);
+
+-- Announcements (for admin dashboard)
+create table if not exists public.announcements (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  body text not null default '',
+  author_id uuid,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.announcements enable row level security;
+drop policy if exists "public read announcements" on public.announcements;
+create policy "public read announcements" on public.announcements for select using (true);
+drop policy if exists "demo insert announcements" on public.announcements;
+create policy "demo insert announcements" on public.announcements for insert with check (true);
+drop policy if exists "demo delete announcements" on public.announcements;
+create policy "demo delete announcements" on public.announcements for delete using (true);
+
+-- Missing RLS policy for knowledge_documents (was enabled but had no policies)
+drop policy if exists "public read knowledge docs" on public.knowledge_documents;
+create policy "public read knowledge docs" on public.knowledge_documents for select using (true);

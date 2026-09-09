@@ -71,6 +71,25 @@ class FeedbackInput(BaseModel):
     comment: str
 
 
+class UserStatusUpdate(BaseModel):
+    status: str  # 'approved', 'rejected', 'disabled'
+
+class UserRoleUpdate(BaseModel):
+    role: str  # 'student', 'trainer', 'admin'
+
+class AnnouncementInput(BaseModel):
+    title: str
+    body: str
+
+class CourseInput(BaseModel):
+    title: str
+    description: str = ''
+    difficulty: str = 'Beginner'
+    duration_hrs: int = 1
+    objectives: list[str] = []
+    resources: list[dict] = []
+
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -224,6 +243,32 @@ DEMO_TRAINER = {
         {"student": "Arjun Patel", "project": "Portfolio Website", "submitted": "1d ago", "status": "pending"},
     ],
 }
+
+DEMO_ADMIN_STATS = {
+    'total_users': 156, 'active_learners': 89, 'trainers': 12,
+    'courses': 8, 'assessments_taken': 340, 'certifications': 23,
+    'avg_completion': 74, 'avg_readiness': 68
+}
+
+DEMO_USERS = [
+    {'id': 'u1', 'name': 'Alex Johnson', 'email': 'alex@example.com', 'role': 'student', 'status': 'approved', 'joined': '2026-08-15'},
+    {'id': 'u2', 'name': 'Priya Nair', 'email': 'priya.n@example.com', 'role': 'student', 'status': 'approved', 'joined': '2026-08-20'},
+    {'id': 'u3', 'name': 'Arjun Patel', 'email': 'arjun@example.com', 'role': 'student', 'status': 'approved', 'joined': '2026-08-22'},
+    {'id': 'u4', 'name': 'Sneha Reddy', 'email': 'sneha@example.com', 'role': 'student', 'status': 'pending', 'joined': '2026-09-01'},
+    {'id': 'u5', 'name': 'Rahul Mehta', 'email': 'rahul.m@example.com', 'role': 'trainer', 'status': 'approved', 'joined': '2026-07-10'},
+    {'id': 'u6', 'name': 'Dr. Ananya Sen', 'email': 'ananya@example.com', 'role': 'trainer', 'status': 'pending', 'joined': '2026-09-05'},
+    {'id': 'u7', 'name': 'Kiran Kumar', 'email': 'kiran@example.com', 'role': 'student', 'status': 'approved', 'joined': '2026-08-25'}
+]
+
+DEMO_ANNOUNCEMENTS = [
+    {'id': 'a1', 'title': 'SIH 2026 Demo Day', 'body': 'All teams prepare for the final SIH demonstration on September 15th.', 'date': '2026-09-08'},
+    {'id': 'a2', 'title': 'New Learning Modules Available', 'body': '5 new skill modules have been published.', 'date': '2026-09-05'}
+]
+
+DEMO_TRAINER_COURSES = [
+    {'id': 'tc1', 'title': 'Python Backend Masterclass', 'description': 'Complete Python backend with FastAPI', 'difficulty': 'Intermediate', 'duration_hrs': 12, 'status': 'published', 'students': 18},
+    {'id': 'tc2', 'title': 'REST API Design Patterns', 'description': 'Industry-standard REST API architecture', 'difficulty': 'Advanced', 'duration_hrs': 8, 'status': 'draft', 'students': 0}
+]
 
 LEARNING_MODULES_FALLBACK = [
     {
@@ -783,12 +828,110 @@ def submit_trainer_feedback(feedback: FeedbackInput):
 
 
 # ---------------------------------------------------------------------------
+# Admin endpoints
+# ---------------------------------------------------------------------------
+
+@app.get('/api/admin/overview')
+def admin_overview():
+    return DEMO_ADMIN_STATS
+
+@app.get('/api/admin/users')
+def admin_users():
+    return DEMO_USERS
+
+@app.post('/api/admin/users/{user_id}/status')
+def update_user_status(user_id: str, body: UserStatusUpdate):
+    for u in DEMO_USERS:
+        if u['id'] == user_id:
+            u['status'] = body.status
+            return {'updated': True, 'user': u}
+    raise HTTPException(404, 'User not found')
+
+@app.post('/api/admin/users/{user_id}/role')
+def update_user_role(user_id: str, body: UserRoleUpdate):
+    for u in DEMO_USERS:
+        if u['id'] == user_id:
+            u['role'] = body.role
+            return {'updated': True, 'user': u}
+    raise HTTPException(404, 'User not found')
+
+@app.get('/api/admin/announcements')
+def get_announcements():
+    return DEMO_ANNOUNCEMENTS
+
+@app.post('/api/admin/announcements')
+def create_announcement(body: AnnouncementInput):
+    import uuid
+    ann = {'id': str(uuid.uuid4())[:8], 'title': body.title, 'body': body.body, 'date': datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+    DEMO_ANNOUNCEMENTS.insert(0, ann)
+    return {'created': True, 'announcement': ann}
+
+@app.delete('/api/admin/announcements/{ann_id}')
+def delete_announcement(ann_id: str):
+    global DEMO_ANNOUNCEMENTS
+    DEMO_ANNOUNCEMENTS = [a for a in DEMO_ANNOUNCEMENTS if a['id'] != ann_id]
+    return {'deleted': True}
+
+# ---------------------------------------------------------------------------
+# Extra Trainer endpoints
+# ---------------------------------------------------------------------------
+
+@app.get('/api/trainer/courses')
+def get_trainer_courses():
+    return DEMO_TRAINER_COURSES
+
+@app.post('/api/trainer/courses')
+def create_trainer_course(body: CourseInput):
+    import uuid
+    course = {'id': 'tc-' + str(uuid.uuid4())[:6], 'title': body.title, 'description': body.description, 'difficulty': body.difficulty, 'duration_hrs': body.duration_hrs, 'status': 'draft', 'students': 0}
+    DEMO_TRAINER_COURSES.append(course)
+    return {'created': True, 'course': course}
+
+@app.delete('/api/trainer/courses/{course_id}')
+def delete_trainer_course(course_id: str):
+    global DEMO_TRAINER_COURSES
+    DEMO_TRAINER_COURSES = [c for c in DEMO_TRAINER_COURSES if c['id'] != course_id]
+    return {'deleted': True}
+
+@app.post('/api/trainer/courses/{course_id}/publish')
+def publish_trainer_course(course_id: str):
+    for c in DEMO_TRAINER_COURSES:
+        if c['id'] == course_id:
+            c['status'] = 'published'
+            return {'published': True, 'course': c}
+    raise HTTPException(404, 'Course not found')
+
+@app.get('/api/trainer/competency-match')
+def trainer_competency_match():
+    trainer_skills = ['Python', 'FastAPI', 'REST API', 'Authentication', 'SQL']
+    matches = []
+    for learner in DEMO_TRAINER['learners']:
+        role = learner['role']
+        req = ROLE_REQUIREMENTS.get(role, {})
+        student_skills = DEMO_STUDENT['skills'] if learner['name'] == 'Alex Johnson' else {s: 60 for s in req}
+        overlap = []
+        for skill in trainer_skills:
+            if skill in req:
+                gap = max(0, req[skill] - student_skills.get(skill, 0))
+                if gap > 5:
+                    overlap.append({'skill': skill, 'gap': gap, 'required': req[skill], 'current': student_skills.get(skill, 0)})
+        match_score = len(overlap) / max(1, len(req)) * 100 if overlap else 0
+        matches.append({'learner': learner['name'], 'role': role, 'teachable_gaps': overlap, 'match_score': round(match_score, 1)})
+    matches.sort(key=lambda x: x['match_score'], reverse=True)
+    return {'trainer': 'Dr. Priya Sharma', 'expertise': trainer_skills, 'matches': matches}
+
+# ---------------------------------------------------------------------------
 # Frontend catch-all (must come after all API routes)
 # ---------------------------------------------------------------------------
 
-@app.get("/{full_path:path}", include_in_schema=False)
+# Serve specific static files only (security: don't expose source code)
+@app.get('/{full_path:path}', include_in_schema=False)
 def frontend_catchall(full_path: str):
-    return FileResponse(BASE / "index.html")
-
-
-app.mount("/static", StaticFiles(directory=BASE), name="static")
+    # Serve known static files
+    static_files = {'style.css', 'script.js', 'supabase-config.js'}
+    if full_path in static_files:
+        file_path = BASE / full_path
+        if file_path.exists():
+            return FileResponse(file_path)
+    # Default: serve index.html for SPA routing
+    return FileResponse(BASE / 'index.html')
