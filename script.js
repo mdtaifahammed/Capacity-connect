@@ -581,10 +581,16 @@ Issued by Capacity Connect · SIH 2026`;
   // Trainer tabs
   trainerTab(tab) {
     state.trainerActiveTab = tab;
-    document.querySelectorAll('.trainer-view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.trainer-view').forEach(v => {
+      v.classList.remove('active');
+      v.classList.add('hidden');
+    });
     document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
     const view = document.getElementById('tv-' + tab);
-    if (view) view.classList.add('active');
+    if (view) {
+      view.classList.add('active');
+      view.classList.remove('hidden');
+    }
     const btn = [...document.querySelectorAll('.sidebar-btn')].find(b => b.textContent.toLowerCase().includes(tab.substring(0,4)));
     if (btn) btn.classList.add('active');
 
