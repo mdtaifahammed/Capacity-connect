@@ -87,15 +87,28 @@ alter table public.knowledge_chunks enable row level security;
 alter table public.trainer_quality enable row level security;
 
 -- Public read policies for catalogue/knowledge/trainer information.
+drop policy if exists "public read roles" on public.roles;
 create policy "public read roles" on public.roles for select using (true);
+
+drop policy if exists "public read skills" on public.skills;
 create policy "public read skills" on public.skills for select using (true);
+
+drop policy if exists "public read role skills" on public.role_skills;
 create policy "public read role skills" on public.role_skills for select using (true);
+
+drop policy if exists "public read knowledge chunks" on public.knowledge_chunks;
 create policy "public read knowledge chunks" on public.knowledge_chunks for select using (true);
+
+drop policy if exists "public read trainers" on public.trainer_quality;
 create policy "public read trainers" on public.trainer_quality for select using (true);
 
 -- For production, replace these demo insert policies with authenticated-user policies.
+drop policy if exists "demo insert skill gap" on public.skill_gap_analyses;
 create policy "demo insert skill gap" on public.skill_gap_analyses for insert with check (true);
+
+drop policy if exists "demo insert assessments" on public.assessments;
 create policy "demo insert assessments" on public.assessments for insert with check (true);
+
 
 -- Vector/RAG preparation. Supabase supports pgvector for storing embeddings and similarity search.
 create index if not exists knowledge_chunks_embedding_idx
