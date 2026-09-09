@@ -251,26 +251,61 @@ alter table public.opportunities         enable row level security;
 alter table public.opportunity_matches   enable row level security;
 
 -- Public read (catalogue tables)
-create policy if not exists "public read modules"       on public.learning_modules      for select using (true);
-create policy if not exists "public read projects"      on public.projects               for select using (true);
-create policy if not exists "public read opportunities" on public.opportunities          for select using (true);
+drop policy if exists "public read modules" on public.learning_modules;
+create policy "public read modules" on public.learning_modules for select using (true);
+
+drop policy if exists "public read projects" on public.projects;
+create policy "public read projects" on public.projects for select using (true);
+
+drop policy if exists "public read opportunities" on public.opportunities;
+create policy "public read opportunities" on public.opportunities for select using (true);
 
 -- Demo/anon insert + read policies (tighten for production)
-create policy if not exists "demo insert progress"       on public.learning_progress      for insert with check (true);
-create policy if not exists "demo read progress"         on public.learning_progress      for select using (true);
-create policy if not exists "demo insert submissions"    on public.project_submissions    for insert with check (true);
-create policy if not exists "demo read submissions"      on public.project_submissions    for select using (true);
-create policy if not exists "demo insert practical"      on public.practical_assessments  for insert with check (true);
-create policy if not exists "demo read practical"        on public.practical_assessments  for select using (true);
-create policy if not exists "demo insert competencies"   on public.competencies           for insert with check (true);
-create policy if not exists "demo read competencies"     on public.competencies           for select using (true);
-create policy if not exists "demo insert certifications" on public.certifications         for insert with check (true);
-create policy if not exists "demo read certifications"   on public.certifications         for select using (true);
-create policy if not exists "demo insert passport"       on public.skill_passports        for insert with check (true);
-create policy if not exists "demo upsert passport"       on public.skill_passports        for update using (true);
-create policy if not exists "demo read passport"         on public.skill_passports        for select using (true);
-create policy if not exists "demo insert matches"        on public.opportunity_matches    for insert with check (true);
-create policy if not exists "demo read matches"          on public.opportunity_matches    for select using (true);
+drop policy if exists "demo insert progress" on public.learning_progress;
+create policy "demo insert progress" on public.learning_progress for insert with check (true);
+
+drop policy if exists "demo read progress" on public.learning_progress;
+create policy "demo read progress" on public.learning_progress for select using (true);
+
+drop policy if exists "demo insert submissions" on public.project_submissions;
+create policy "demo insert submissions" on public.project_submissions for insert with check (true);
+
+drop policy if exists "demo read submissions" on public.project_submissions;
+create policy "demo read submissions" on public.project_submissions for select using (true);
+
+drop policy if exists "demo insert practical" on public.practical_assessments;
+create policy "demo insert practical" on public.practical_assessments for insert with check (true);
+
+drop policy if exists "demo read practical" on public.practical_assessments;
+create policy "demo read practical" on public.practical_assessments for select using (true);
+
+drop policy if exists "demo insert competencies" on public.competencies;
+create policy "demo insert competencies" on public.competencies for insert with check (true);
+
+drop policy if exists "demo read competencies" on public.competencies;
+create policy "demo read competencies" on public.competencies for select using (true);
+
+drop policy if exists "demo insert certifications" on public.certifications;
+create policy "demo insert certifications" on public.certifications for insert with check (true);
+
+drop policy if exists "demo read certifications" on public.certifications;
+create policy "demo read certifications" on public.certifications for select using (true);
+
+drop policy if exists "demo insert passport" on public.skill_passports;
+create policy "demo insert passport" on public.skill_passports for insert with check (true);
+
+drop policy if exists "demo upsert passport" on public.skill_passports;
+create policy "demo upsert passport" on public.skill_passports for update using (true);
+
+drop policy if exists "demo read passport" on public.skill_passports;
+create policy "demo read passport" on public.skill_passports for select using (true);
+
+drop policy if exists "demo insert matches" on public.opportunity_matches;
+create policy "demo insert matches" on public.opportunity_matches for insert with check (true);
+
+drop policy if exists "demo read matches" on public.opportunity_matches;
+create policy "demo read matches" on public.opportunity_matches for select using (true);
+
 
 -- =============================================================================
 -- SEED DATA
