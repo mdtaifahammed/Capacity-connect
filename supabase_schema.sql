@@ -100,3 +100,274 @@ create policy "demo insert assessments" on public.assessments for insert with ch
 -- Vector/RAG preparation. Supabase supports pgvector for storing embeddings and similarity search.
 create index if not exists knowledge_chunks_embedding_idx
 on public.knowledge_chunks using hnsw (embedding vector_cosine_ops);
+
+-- =============================================================================
+-- MVP EXTENSION TABLES
+-- Run this section after the base schema above.
+-- =============================================================================
+
+-- Learning modules (5 gap-closing modules)
+create table if not exists public.learning_modules (
+  id           uuid primary key default gen_random_uuid(),
+  skill        text not null,
+  title        text not null,
+  description  text not null default '',
+  objectives   jsonb not null default '[]'::jsonb,
+  resources    jsonb not null default '[]'::jsonb,
+  questions    jsonb not null default '[]'::jsonb,
+  difficulty   text not null default 'Beginner'
+                 check (difficulty in ('Beginner','Intermediate','Advanced')),
+  duration_hrs numeric(4,1) not null default 1,
+  position     integer not null default 0,
+  created_at   timestamptz not null default now()
+);
+
+-- Per-user module completion
+create table if not exists public.learning_progress (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid,
+  module_id    uuid references public.learning_modules(id) on delete cascade,
+  completed    boolean not null default false,
+  score        numeric(5,2) check (score between 0 and 100),
+  completed_at timestamptz,
+  created_at   timestamptz not null default now(),
+  unique nulls not distinct (user_id, module_id)
+);
+
+-- Projects
+create table if not exists public.projects (
+  id              uuid primary key default gen_random_uuid(),
+  title           text not null,
+  description     text not null default '',
+  required_skills jsonb not null default '[]'::jsonb,
+  difficulty      text not null default 'Intermediate',
+  duration_hrs    integer not null default 8,
+  tasks           jsonb not null default '[]'::jsonb,
+  eval_criteria   jsonb not null default '[]'::jsonb,
+  created_at      timestamptz not null default now()
+);
+
+-- Project submissions
+create table if not exists public.project_submissions (
+  id           uuid primary key default gen_random_uuid(),
+  project_id   uuid references public.projects(id) on delete cascade,
+  user_id      uuid,
+  github_url   text,
+  demo_url     text,
+  description  text,
+  score        numeric(5,2) check (score between 0 and 100),
+  feedback     text,
+  submitted_at timestamptz not null default now()
+);
+
+-- Practical assessments (scenario-based)
+create table if not exists public.practical_assessments (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid,
+  answers     jsonb not null default '{}'::jsonb,
+  score       numeric(5,2) check (score between 0 and 100),
+  status      text not null default 'pending'
+                check (status in ('pending','passed','failed')),
+  assessed_at timestamptz not null default now()
+);
+
+-- Competency records (composite verification)
+create table if not exists public.competencies (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid,
+  role              text not null,
+  course_completion numeric(5,2) default 0,
+  assessment_score  numeric(5,2) default 0,
+  practical_score   numeric(5,2) default 0,
+  project_score     numeric(5,2) default 0,
+  composite_score   numeric(5,2) generated always as (
+    course_completion * 0.25 + assessment_score * 0.25 +
+    practical_score   * 0.30 + project_score   * 0.20
+  ) stored,
+  verified          boolean not null default false,
+  verified_at       timestamptz,
+  created_at        timestamptz not null default now()
+);
+
+-- Certifications (issued only when competency verified)
+create table if not exists public.certifications (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid,
+  competency_id  uuid references public.competencies(id) on delete cascade,
+  title          text not null,
+  skill          text not null,
+  certificate_id text unique not null
+                   default 'CC-' || upper(substring(md5(random()::text), 1, 8)),
+  issued_at      timestamptz not null default now()
+);
+
+-- Skill passports (aggregated verified skill snapshot)
+create table if not exists public.skill_passports (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid unique,
+  full_name       text,
+  target_role     text,
+  verified_skills jsonb not null default '{}'::jsonb,
+  projects        jsonb not null default '[]'::jsonb,
+  certifications  jsonb not null default '[]'::jsonb,
+  competencies    jsonb not null default '[]'::jsonb,
+  updated_at      timestamptz not null default now()
+);
+
+-- Opportunities
+create table if not exists public.opportunities (
+  id              uuid primary key default gen_random_uuid(),
+  title           text not null,
+  company         text,
+  type            text not null default 'Internship',
+  description     text,
+  required_skills jsonb not null default '[]'::jsonb,
+  created_at      timestamptz not null default now()
+);
+
+-- Opportunity match scores per user
+create table if not exists public.opportunity_matches (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid,
+  opportunity_id uuid references public.opportunities(id) on delete cascade,
+  match_pct      numeric(5,2) not null default 0,
+  met_skills     jsonb not null default '[]'::jsonb,
+  missing_skills jsonb not null default '[]'::jsonb,
+  matched_at     timestamptz not null default now()
+);
+
+-- =============================================================================
+-- RLS for MVP tables
+-- =============================================================================
+alter table public.learning_modules      enable row level security;
+alter table public.learning_progress     enable row level security;
+alter table public.projects              enable row level security;
+alter table public.project_submissions   enable row level security;
+alter table public.practical_assessments enable row level security;
+alter table public.competencies          enable row level security;
+alter table public.certifications        enable row level security;
+alter table public.skill_passports       enable row level security;
+alter table public.opportunities         enable row level security;
+alter table public.opportunity_matches   enable row level security;
+
+-- Public read (catalogue tables)
+create policy if not exists "public read modules"       on public.learning_modules      for select using (true);
+create policy if not exists "public read projects"      on public.projects               for select using (true);
+create policy if not exists "public read opportunities" on public.opportunities          for select using (true);
+
+-- Demo/anon insert + read policies (tighten for production)
+create policy if not exists "demo insert progress"       on public.learning_progress      for insert with check (true);
+create policy if not exists "demo read progress"         on public.learning_progress      for select using (true);
+create policy if not exists "demo insert submissions"    on public.project_submissions    for insert with check (true);
+create policy if not exists "demo read submissions"      on public.project_submissions    for select using (true);
+create policy if not exists "demo insert practical"      on public.practical_assessments  for insert with check (true);
+create policy if not exists "demo read practical"        on public.practical_assessments  for select using (true);
+create policy if not exists "demo insert competencies"   on public.competencies           for insert with check (true);
+create policy if not exists "demo read competencies"     on public.competencies           for select using (true);
+create policy if not exists "demo insert certifications" on public.certifications         for insert with check (true);
+create policy if not exists "demo read certifications"   on public.certifications         for select using (true);
+create policy if not exists "demo insert passport"       on public.skill_passports        for insert with check (true);
+create policy if not exists "demo upsert passport"       on public.skill_passports        for update using (true);
+create policy if not exists "demo read passport"         on public.skill_passports        for select using (true);
+create policy if not exists "demo insert matches"        on public.opportunity_matches    for insert with check (true);
+create policy if not exists "demo read matches"          on public.opportunity_matches    for select using (true);
+
+-- =============================================================================
+-- SEED DATA
+-- =============================================================================
+
+-- Learning modules
+insert into public.learning_modules (skill, title, description, difficulty, duration_hrs, position, objectives, resources) values
+(
+  'REST API',
+  'REST API Fundamentals',
+  'Learn HTTP methods, status codes, request/response cycles and how to design clean, predictable REST endpoints.',
+  'Beginner', 3, 1,
+  '["Understand HTTP methods: GET, POST, PUT, DELETE", "Design resource-based URL structures", "Handle status codes (200, 201, 400, 401, 404, 500)", "Parse JSON request and response bodies", "Test endpoints with curl and Postman"]'::jsonb,
+  '[{"title":"MDN HTTP Overview","url":"https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview","type":"article"},{"title":"REST API Design Guide","url":"https://restfulapi.net","type":"article"}]'::jsonb
+),
+(
+  'SQL',
+  'SQL & Database Design',
+  'Master SELECT, JOIN, GROUP BY, indexes, transactions and schema design patterns used in real production databases.',
+  'Beginner', 4, 2,
+  '["Write SELECT queries with WHERE and ORDER BY", "Use INNER JOIN, LEFT JOIN across related tables", "Aggregate data with GROUP BY and HAVING", "Create indexes for query performance", "Design normalized schemas (1NF, 2NF, 3NF)"]'::jsonb,
+  '[{"title":"SQLZoo Interactive Tutorial","url":"https://sqlzoo.net","type":"interactive"},{"title":"PostgreSQL Documentation","url":"https://www.postgresql.org/docs/current/tutorial.html","type":"docs"}]'::jsonb
+),
+(
+  'FastAPI',
+  'FastAPI Backend Development',
+  'Build async Python APIs with FastAPI, Pydantic models, dependency injection, and auto-generated OpenAPI documentation.',
+  'Intermediate', 5, 3,
+  '["Create GET and POST endpoints with path and query parameters", "Define Pydantic request and response models", "Use dependency injection for auth and DB", "Return structured JSON responses with correct status codes", "Read FastAPI auto-generated /docs"]'::jsonb,
+  '[{"title":"FastAPI Official Tutorial","url":"https://fastapi.tiangolo.com/tutorial/","type":"docs"},{"title":"Pydantic Docs","url":"https://docs.pydantic.dev","type":"docs"}]'::jsonb
+),
+(
+  'Authentication',
+  'Authentication & Security',
+  'Implement JWT authentication, secure password hashing, session management and role-based access control in a Python API.',
+  'Intermediate', 3, 4,
+  '["Hash passwords with bcrypt", "Issue and verify JWT tokens", "Protect routes with Bearer token middleware", "Implement role-based access (student/trainer/admin)", "Understand CORS and security headers"]'::jsonb,
+  '[{"title":"JWT Introduction","url":"https://jwt.io/introduction","type":"article"},{"title":"OWASP Authentication Cheat Sheet","url":"https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html","type":"article"}]'::jsonb
+),
+(
+  'Full Stack',
+  'Full Stack Integration',
+  'Connect a JavaScript frontend to a FastAPI backend backed by PostgreSQL. Deploy the complete application end-to-end.',
+  'Advanced', 8, 5,
+  '["Wire fetch() calls from HTML/JS to FastAPI endpoints", "Handle auth tokens in frontend requests", "Display API data with DOM manipulation", "Connect FastAPI to Supabase/PostgreSQL", "Deploy frontend and backend together"]'::jsonb,
+  '[{"title":"MDN Fetch API","url":"https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch","type":"article"},{"title":"Supabase Quickstart","url":"https://supabase.com/docs/guides/getting-started","type":"docs"}]'::jsonb
+)
+on conflict do nothing;
+
+-- Demo project
+insert into public.projects (title, description, required_skills, difficulty, duration_hrs, tasks, eval_criteria) values
+(
+  'Full Stack Task Manager',
+  'Build a complete task management application using HTML, CSS, JavaScript, Python, FastAPI and PostgreSQL with full CRUD operations and user authentication.',
+  '["HTML","CSS","JavaScript","Python","FastAPI","SQL","REST API","Authentication"]'::jsonb,
+  'Intermediate', 8,
+  '[{"id":"t1","label":"Create responsive HTML/CSS frontend with task list UI"},{"id":"t2","label":"Build REST API with FastAPI (GET, POST, PUT, DELETE tasks)"},{"id":"t3","label":"Connect PostgreSQL database via Supabase"},{"id":"t4","label":"Implement full CRUD for tasks"},{"id":"t5","label":"Add JWT authentication for protected routes"}]'::jsonb,
+  '["Working CRUD endpoints (all 4 methods)","JWT authentication implemented","Database connected and persisting data","Responsive UI on mobile and desktop","Clean, readable code structure"]'::jsonb
+)
+on conflict do nothing;
+
+-- Sample opportunities
+insert into public.opportunities (title, company, type, description, required_skills) values
+(
+  'Frontend Developer Internship',
+  'TechStart India',
+  'Internship',
+  'Build responsive web interfaces for a fast-growing SaaS product. Work alongside senior engineers.',
+  '[{"skill":"HTML","level":70},{"skill":"CSS","level":70},{"skill":"JavaScript","level":80},{"skill":"Git","level":60}]'::jsonb
+),
+(
+  'Backend Developer Internship',
+  'DataBridge Solutions',
+  'Internship',
+  'Develop and maintain Python REST APIs connected to PostgreSQL. Own features end-to-end.',
+  '[{"skill":"Python","level":75},{"skill":"FastAPI","level":70},{"skill":"SQL","level":75},{"skill":"REST API","level":80},{"skill":"Git","level":65}]'::jsonb
+),
+(
+  'Junior Full Stack Internship',
+  'BuildFast Technologies',
+  'Internship',
+  'End-to-end feature development across frontend and backend. Great for full stack learners.',
+  '[{"skill":"JavaScript","level":75},{"skill":"Python","level":70},{"skill":"SQL","level":70},{"skill":"REST API","level":75},{"skill":"Git","level":65}]'::jsonb
+),
+(
+  'Python Developer Internship',
+  'Analytics Hub',
+  'Internship',
+  'Automate data pipelines and build internal tooling with Python. Work with real datasets.',
+  '[{"skill":"Python","level":80},{"skill":"SQL","level":70},{"skill":"Git","level":65}]'::jsonb
+),
+(
+  'Web Development Project',
+  'GovTech Initiative',
+  'Project',
+  'Build a civic data portal as a funded freelance project. Open source, portfolio-ready.',
+  '[{"skill":"HTML","level":70},{"skill":"CSS","level":70},{"skill":"JavaScript","level":75},{"skill":"REST API","level":65}]'::jsonb
+)
+on conflict do nothing;
+

@@ -3,218 +3,783 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Capacity Connect</title>
+  <title>Capacity Connect — Learn. Build Skills. Create Opportunities.</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<section id="authShell" class="auth-shell" aria-live="polite">
+
+<!-- ======================================================
+     DEMO MODE BADGE (persistent, shown when demo active)
+     ====================================================== -->
+<div id="demo-badge" class="hidden">🎯 DEMO MODE</div>
+
+<!-- ======================================================
+     GLOBAL NAV (shown on all non-landing screens)
+     ====================================================== -->
+<nav id="global-nav" class="hidden">
+  <div class="nav-brand" onclick="CC.go('landing')">Capacity<span>Connect</span></div>
+  <div class="nav-links">
+    <button onclick="CC.go('student')"       id="nav-student"   class="hidden">Dashboard</button>
+    <button onclick="CC.go('assessment')"    id="nav-assess"    class="hidden">Assessment</button>
+    <button onclick="CC.go('skill-gap')"     id="nav-gap"       class="hidden">Skill Gap</button>
+    <button onclick="CC.go('learning-path')" id="nav-path"      class="hidden">Learning Path</button>
+    <button onclick="CC.go('passport')"      id="nav-passport"  class="hidden">Passport</button>
+    <button onclick="CC.go('opportunities')" id="nav-opps"      class="hidden">Opportunities</button>
+    <button onclick="CC.go('trainer')"       id="nav-trainer"   class="hidden">Trainer</button>
+  </div>
+  <div class="nav-tools">
+    <label class="bw-toggle" title="Reduce animations and API calls">
+      <input type="checkbox" id="bw-toggle"> Low BW
+    </label>
+    <button class="btn btn-secondary btn-sm" onclick="CC.exitDemo()">Exit Demo</button>
+  </div>
+</nav>
+
+<!-- ======================================================
+     JOURNEY BAR (shown on student screens)
+     ====================================================== -->
+<div id="journey-bar" class="hidden">
+  <div class="journey-steps">
+    <div class="journey-step" id="js-1" onclick="CC.go('assessment')">
+      <div class="step-num">①</div>Assess
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step" id="js-2" onclick="CC.go('skill-gap')">
+      <div class="step-num">②</div>Find Gap
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step" id="js-3" onclick="CC.go('learning-path')">
+      <div class="step-num">③</div>Learn
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step" id="js-4" onclick="CC.go('project')">
+      <div class="step-num">④</div>Practice
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step" id="js-5" onclick="CC.go('practical')">
+      <div class="step-num">⑤</div>Prove
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step" id="js-6" onclick="CC.go('passport')">
+      <div class="step-num">⑥</div>Verify
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step" id="js-7" onclick="CC.go('opportunities')">
+      <div class="step-num">⑦</div>Opportunity
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     SCREEN: LANDING PAGE
+     ====================================================== -->
+<section id="screen-landing">
+  <nav class="landing-nav">
+    <div class="landing-brand">Capacity<span>Connect</span></div>
+    <div class="landing-nav-right">
+      <button class="btn btn-secondary btn-sm" onclick="CC.go('login')">Login</button>
+      <button class="btn btn-primary" onclick="document.getElementById('demo-modal').classList.remove('hidden')">🚀 DEMO LOGIN</button>
+    </div>
+  </nav>
+
+  <div class="hero-section">
+    <div>
+      <span class="hero-tagline">SIH 2026 · Problem Statement SIH26075</span>
+      <h1>Turn Learning Into<br><span>Demonstrable Skills.</span></h1>
+      <p class="hero-sub">Capacity Connect identifies what you need to learn, creates a personalized learning path, measures your practical skills, verifies your competency, and connects your verified skills with opportunities.</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary btn-lg" onclick="document.getElementById('demo-modal').classList.remove('hidden')">🚀 DEMO LOGIN</button>
+        <button class="btn btn-secondary btn-lg" onclick="document.getElementById('how-section').scrollIntoView({behavior:'smooth'})">How It Works</button>
+        <button class="btn btn-ghost btn-lg" onclick="CC.go('login')">Login / Sign Up</button>
+      </div>
+    </div>
+
+    <div class="hero-flow-card">
+      <h3>The Capacity Connect Journey</h3>
+      <div class="flow-step-item">
+        <div class="flow-step-icon c1">🔍</div>
+        <div class="flow-step-text">
+          <strong>① Assess</strong>
+          <small>Identify your current skill levels</small>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step-item">
+        <div class="flow-step-icon c2">📊</div>
+        <div class="flow-step-text">
+          <strong>② Find Gap</strong>
+          <small>Know exactly what you're missing</small>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step-item">
+        <div class="flow-step-icon c3">📚</div>
+        <div class="flow-step-text">
+          <strong>③ Learn & Practice</strong>
+          <small>Personalized path, gap-prioritized</small>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step-item">
+        <div class="flow-step-icon c4">✅</div>
+        <div class="flow-step-text">
+          <strong>④ Prove & Verify</strong>
+          <small>Competency through demonstrated skill</small>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step-item">
+        <div class="flow-step-icon c5">🚀</div>
+        <div class="flow-step-text">
+          <strong>⑤ Opportunity</strong>
+          <small>Match verified skills to real openings</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="how-section" class="how-section">
+    <span class="eyebrow" style="display:block;text-align:center">HOW IT WORKS</span>
+    <h2>From Assessment to Opportunity — in One Platform</h2>
+    <p>Traditional LMS: Course → Learn → Quiz → Certificate.<br>
+       Capacity Connect: Assess → Identify Gap → Personalize → Learn → Prove → Verify → Opportunity.</p>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <h4>Skill Assessment</h4>
+        <p>Take a short targeted assessment. We measure where you actually are, not where you think you are.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <h4>Gap Analysis</h4>
+        <p>See exactly which skills you're missing for your target role. Prioritized by gap size, colored by severity.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <h4>Personalized Path</h4>
+        <p>A learning path built from your gaps — not a generic curriculum. Strong skills are skipped entirely.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">4</div>
+        <h4>Practice & Build</h4>
+        <p>Learn through modules and a real project. Apply every skill you've studied in a full-stack context.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">5</div>
+        <h4>Prove & Connect</h4>
+        <p>Practical assessment proves your skill. Get a Skill Passport. Match to real opportunities by verified skills.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="differentiator-section">
+    <span class="eyebrow">THE CORE INNOVATION</span>
+    <h2>Not Just Courses. Verified Competency.</h2>
+    <p>Traditional LMS tells you what courses to complete. Capacity Connect tells you which skills you are missing, creates a path to close those gaps, checks whether you actually gained the skill, and then connects your verified skills to opportunities.</p>
+    <div class="accent-quote">
+      "A certificate should prove what you can do — not just what you sat through."
+    </div>
+  </div>
+
+  <footer class="landing-footer">
+    <div class="landing-footer-brand">Capacity<span>Connect</span></div>
+    <p>SIH 2026 · Problem Statement SIH26075 · Digital Capacity Building and Learning Management Portal</p>
+    <label class="bw-toggle">
+      <input type="checkbox" id="bw-toggle-landing"> Low Bandwidth Mode
+    </label>
+  </footer>
+</section>
+
+<!-- ======================================================
+     SCREEN: LOGIN / AUTH
+     ====================================================== -->
+<section id="screen-login" class="hidden">
   <div class="auth-panel">
     <div class="auth-brand">Capacity<span>Connect</span></div>
-    <div id="authNotice" class="auth-notice" role="alert"></div>
+    <div class="auth-demo-shortcut">
+      <p>🎯 Judges: Use Demo Login for instant access</p>
+      <button class="btn btn-primary btn-sm" onclick="CC.go('landing'); setTimeout(()=>document.getElementById('demo-modal').classList.remove('hidden'),100)">DEMO LOGIN</button>
+    </div>
+    <div id="auth-notice" class="auth-notice"></div>
 
-    <form id="loginForm" class="auth-form">
-      <p class="eyebrow">WELCOME BACK</p>
-      <h1>Build capacity. Prove impact.</h1>
-      <p class="muted">Sign in to continue your learning journey.</p>
-      <div class="role-picker" role="tablist" aria-label="Account role">
-        <button type="button" class="role-tab active" data-login-role="student">Student</button>
-        <button type="button" class="role-tab" data-login-role="trainer">Trainer</button>
-        <button type="button" class="role-tab" data-login-role="admin">Admin</button>
+    <div id="login-form">
+      <div class="role-picker">
+        <button class="role-tab active" data-role="student">Student</button>
+        <button class="role-tab" data-role="trainer">Trainer</button>
+        <button class="role-tab" data-role="admin">Admin</button>
       </div>
-      <label>Email<input id="loginEmail" type="email" autocomplete="email" required></label>
-      <label>Password<div class="password-field"><input id="loginPassword" type="password" autocomplete="current-password" required><button type="button" class="password-toggle" data-target="loginPassword" aria-label="Show password">Show</button></div></label>
-      <div class="auth-options"><label class="check-label"><input id="rememberMe" type="checkbox" checked> Remember me</label><button type="button" class="text-button" id="forgotLink">Forgot password?</button></div>
-      <button class="primary auth-submit" type="submit">Sign in</button>
-      <p class="auth-switch">New to Capacity Connect? <button type="button" class="text-button" id="signupLink">Create an account</button></p>
-    </form>
+      <label class="auth-form-label"><span>Email</span><input class="auth-input" type="email" id="login-email" autocomplete="email" placeholder="you@example.com"></label>
+      <label class="auth-form-label"><span>Password</span><input class="auth-input" type="password" id="login-password" autocomplete="current-password" placeholder="••••••••"></label>
+      <button class="btn btn-primary btn-full mt-16" id="login-submit" onclick="CC.login()">Sign In</button>
+      <div class="auth-divider">or</div>
+      <div class="auth-switch">Don't have an account? <button onclick="CC.showForm('signup')">Create account</button></div>
+    </div>
 
-    <form id="signupForm" class="auth-form hidden">
-      <p class="eyebrow">JOIN THE PLATFORM</p><h1>Create your account.</h1>
-      <p class="muted">Start building verified capability today.</p>
-      <label>Full name<input id="signupName" type="text" autocomplete="name" required></label>
-      <label>Email<input id="signupEmail" type="email" autocomplete="email" required></label>
-      <label>Password<div class="password-field"><input id="signupPassword" type="password" autocomplete="new-password" required><button type="button" class="password-toggle" data-target="signupPassword" aria-label="Show password">Show</button></div></label>
-      <div id="passwordStrength" class="password-strength">Use 8+ characters with uppercase, lowercase and a number.</div>
-      <label>Confirm password<input id="signupConfirm" type="password" autocomplete="new-password" required></label>
-      <label>Account type<select id="signupRole"><option value="student">Student / Trainee</option><option value="trainer">Trainer (Pending Approval)</option><option value="admin" disabled>Admin (created by an administrator)</option></select></label>
-      <p class="signup-confirmation-note">After creating your account, check your email and click the confirmation link before signing in.</p>
-      <button class="primary auth-submit" type="submit">Create account</button>
-      <p class="auth-switch">Already registered? <button type="button" class="text-button" id="loginLink">Sign in</button></p>
-    </form>
-
-    <form id="resetForm" class="auth-form hidden">
-      <p class="eyebrow">ACCOUNT RECOVERY</p><h1>Reset your password.</h1>
-      <p class="muted">We will send a secure recovery link to your email.</p>
-      <label>Email<input id="resetEmail" type="email" autocomplete="email" required></label>
-      <button class="primary auth-submit" type="submit">Send recovery link</button>
-      <p class="auth-switch"><button type="button" class="text-button" id="resetBackLink">Back to sign in</button></p>
-    </form>
-
-    <form id="updatePasswordForm" class="auth-form hidden">
-      <p class="eyebrow">RECOVERY SESSION</p><h1>Choose a new password.</h1>
-      <p class="muted">Your recovery link is valid. Create a strong password to continue.</p>
-      <label>New password<input id="newPassword" type="password" autocomplete="new-password" required></label>
-      <label>Confirm new password<input id="newPasswordConfirm" type="password" autocomplete="new-password" required></label>
-      <button class="primary auth-submit" type="submit">Update password</button>
-    </form>
+    <div id="signup-form" class="hidden">
+      <label class="auth-form-label"><span>Full Name</span><input class="auth-input" type="text" id="signup-name" autocomplete="name" placeholder="Alex Johnson"></label>
+      <label class="auth-form-label"><span>Email</span><input class="auth-input" type="email" id="signup-email" autocomplete="email" placeholder="you@example.com"></label>
+      <label class="auth-form-label"><span>Password</span><input class="auth-input" type="password" id="signup-password" autocomplete="new-password" placeholder="8+ chars, uppercase, number"></label>
+      <label class="auth-form-label"><span>Account Type</span>
+        <select class="auth-input" id="signup-role">
+          <option value="student">Student / Trainee</option>
+          <option value="trainer">Trainer (Pending Approval)</option>
+        </select>
+      </label>
+      <button class="btn btn-primary btn-full mt-16" onclick="CC.signup()">Create Account</button>
+      <div class="auth-switch">Already registered? <button onclick="CC.showForm('login')">Sign in</button></div>
+    </div>
   </div>
 </section>
 
-<div id="appShell" class="app-shell hidden">
-<header class="topbar">
-  <div class="brand">Capacity<span>Connect</span></div>
-  <nav>
-    <a href="#dashboard">Dashboard</a>
-    <a href="#skill-gap">Skill Gap</a>
-    <a href="#path">Learning Path</a>
-    <a href="#assessment">Assessment</a>
-    <a href="#opportunities">Opportunities</a>
-  </nav>
-  <div class="account-tools"><span id="userGreeting"></span><label class="bandwidth-toggle"><input id="lowBandwidthToggle" type="checkbox"> Low bandwidth</label><button id="logoutButton" class="secondary" type="button">Log out</button></div>
-</header>
+<!-- ======================================================
+     DEMO LOGIN MODAL
+     ====================================================== -->
+<div id="demo-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('demo-modal').classList.add('hidden')">✕</button>
+    <div class="modal-brand">Capacity<span>Connect</span></div>
+    <p class="eyebrow" style="margin-top:4px">DEMO LOGIN — SIH PRESENTATION</p>
+    <p style="font-size:.85rem;color:var(--muted);margin:8px 0 4px">Select a role to enter the system instantly. No credentials required.</p>
 
-<main class="container">
-  <section id="roleWorkspace" class="role-workspace panel"></section>
-  <section id="trainerDashboard" class="role-dashboard hidden">
-    <div class="dashboard-nav"><button class="dashboard-tab active" data-trainer-view="home">Overview</button><button class="dashboard-tab" data-trainer-view="courses">My Courses</button><button class="dashboard-tab" data-trainer-view="students">Students & Progress</button><button class="dashboard-tab" data-trainer-view="profile">Profile</button></div>
-    <div id="trainerHomeView" class="dashboard-view">
-      <div class="section-head"><div><p class="eyebrow">TRAINER CONSOLE</p><h2>Teach with evidence.</h2></div><button class="primary" data-trainer-view="create">Create course</button></div>
-      <div id="trainerStats" class="stats-grid"></div><div id="trainerActivity" class="panel dashboard-table"></div>
-    </div>
-    <div id="trainerCoursesView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">COURSE MANAGEMENT</p><h2>My courses</h2></div><button class="primary" data-trainer-view="create">New course</button></div><div id="trainerCourses" class="cards"></div></div>
-    <div id="trainerCreateView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">CONTENT BUILDER</p><h2>Create a course</h2></div></div><form id="courseForm" class="panel course-form"><label>Title<input id="courseTitle" required></label><label>Description<textarea id="courseDescription"></textarea></label><label>Category<input id="courseCategory" value="General"></label><label>Difficulty<select id="courseDifficulty"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label><label>Duration (minutes)<input id="courseDuration" type="number" min="0" value="60"></label><div><button class="primary" type="submit">Save draft</button><button class="secondary" type="button" data-trainer-view="courses">Cancel</button></div></form></div>
-    <div id="trainerStudentsView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">LEARNER PROGRESS</p><h2>Students & progress</h2></div></div><div id="trainerStudentTable" class="panel dashboard-table"><p class="muted">Student enrollment analytics will appear as learners enroll in your courses.</p></div></div>
-    <div id="trainerProfileView" class="dashboard-view hidden"><div class="panel"><h2>Trainer profile</h2><p id="trainerProfileText" class="muted"></p><span class="badge">Approved trainer</span></div></div>
-  </section>
-  <section id="adminDashboard" class="role-dashboard hidden">
-    <div class="dashboard-nav"><button class="dashboard-tab active" data-admin-view="overview">Overview</button><button class="dashboard-tab" data-admin-view="users">Users</button><button class="dashboard-tab" data-admin-view="approvals">Trainer approvals</button><button class="dashboard-tab" data-admin-view="courses">Courses</button><button class="dashboard-tab" data-admin-view="settings">Settings</button></div>
-    <div id="adminOverviewView" class="dashboard-view"><div class="section-head"><div><p class="eyebrow">ADMINISTRATION</p><h2>Platform overview.</h2></div></div><div id="adminStats" class="stats-grid"></div></div>
-    <div id="adminUsersView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">USER MANAGEMENT</p><h2>Users</h2></div><input id="userSearch" class="dashboard-search" placeholder="Search users"></div><div id="adminUsers" class="panel dashboard-table"></div></div>
-    <div id="adminApprovalsView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">APPROVAL QUEUE</p><h2>Trainer approvals</h2></div></div><div id="adminApprovals" class="cards"></div></div>
-    <div id="adminCoursesView" class="dashboard-view hidden"><div class="section-head"><div><p class="eyebrow">COURSE GOVERNANCE</p><h2>Courses</h2></div></div><div id="adminCourses" class="panel dashboard-table"></div></div>
-    <div id="adminSettingsView" class="dashboard-view hidden"><div class="panel"><h2>System settings</h2><p class="muted">Platform controls are protected by admin authorization.</p></div></div>
-  </section>
-  <section class="hero">
-    <div>
-      <p class="eyebrow">SMART LEARNING • COMPETENCY • OPPORTUNITIES</p>
-      <h1>Turn learning into <span>verified capability.</span></h1>
-      <p>Capacity Connect identifies skill gaps, creates a personalized learning path, measures learning effectiveness, evaluates practical skills, generates competency certificates and matches learners with opportunities.</p>
-      <button class="primary" onclick="scrollToId('skill-gap')">Start Skill Analysis</button>
-    </div>
-    <div class="hero-card">
-      <div class="score-ring"><strong id="heroScore">0%</strong><small>effectiveness</small></div>
-      <p>Learning Effectiveness</p>
-    </div>
-  </section>
-
-  <section id="dashboard" class="stats-grid">
-    <div class="stat"><small>Current competency</small><strong id="currentScore">0%</strong></div>
-    <div class="stat"><small>Skill gap</small><strong id="gapScore">0%</strong></div>
-    <div class="stat"><small>Path progress</small><strong id="pathProgress">0%</strong></div>
-    <div class="stat"><small>Practical score</small><strong id="practicalScore">0%</strong></div>
-  </section>
-
-  <section id="skill-gap" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">01 • SKILL-GAP ANALYZER</p><h2>What do you need to learn?</h2></div>
-      <p>Enter your target role and current skill levels. The engine compares them with the competency requirements.</p>
-    </div>
-    <div class="panel">
-      <label>Target role
-        <select id="targetRole">
-          <option value="fullstack">Full Stack Developer</option>
-          <option value="frontend">Frontend Developer</option>
-          <option value="backend">Backend Developer</option>
-          <option value="data">Data Analyst</option>
-        </select>
-      </label>
-      <div id="skillsForm" class="skills-form"></div>
-      <button class="primary" onclick="analyzeSkills()">Analyze My Skill Gap</button>
-    </div>
-    <div id="gapResults" class="results"></div>
-  </section>
-
-  <section id="path" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">02 • PERSONALIZED PATH</p><h2>Your learning path</h2></div>
-      <p>Weak skills are prioritized automatically. Strong skills are skipped or given lightweight revision.</p>
-    </div>
-    <div id="learningPath" class="timeline"></div>
-  </section>
-
-  <section id="project" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">07 • PROJECT-BASED LEARNING</p><h2>Learn → Practice → Build → Prove</h2></div>
-    </div>
-    <div id="projects" class="cards"></div>
-  </section>
-
-  <section id="assessment" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">03 • PRACTICAL ASSESSMENT</p><h2>Prove the skill</h2></div>
-      <p>Course completion is not enough. Solve a practical task and pass automated tests.</p>
-    </div>
-    <div class="assessment panel">
-      <div class="question">
-        <span class="badge">JavaScript Challenge</span>
-        <h3>Write a function that returns the largest number in an array.</h3>
-        <pre>largest([3, 9, 2, 7]) → 9</pre>
-        <textarea id="codeAnswer" placeholder="function largest(arr) {
-  // your solution
-}"></textarea>
-        <button class="primary" onclick="submitPractical()">Run Practical Test</button>
+    <button class="demo-role-btn" onclick="CC.enterDemo('student')">
+      <div class="role-icon">🎓</div>
+      <div class="role-info">
+        <strong>Continue as Student</strong>
+        <small>Alex Johnson · Full Stack Developer path · Pre-loaded skill data</small>
       </div>
-      <div id="assessmentResult" class="assessment-result">
-        <strong>Waiting for submission</strong>
-        <p>Your practical score will appear here.</p>
+    </button>
+
+    <button class="demo-role-btn" onclick="CC.enterDemo('trainer')">
+      <div class="role-icon">👩‍🏫</div>
+      <div class="role-info">
+        <strong>Continue as Trainer</strong>
+        <small>Dr. Priya Sharma · 24 learners · Quality Score: 88</small>
       </div>
-    </div>
-  </section>
+    </button>
 
-  <section id="certificate" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">04 • COMPETENCY CERTIFICATE</p><h2>Certificate based on demonstrated skill</h2></div>
-    </div>
-    <div class="certificate panel">
-      <div>
-        <span class="badge">VERIFIED COMPETENCY</span>
-        <h2 id="certTitle">Complete the assessment to unlock</h2>
-        <p id="certText">A certificate is issued only when the learner satisfies the competency threshold.</p>
-      </div>
-      <button id="certBtn" class="secondary" disabled onclick="downloadCertificate()">Download Certificate</button>
-    </div>
-  </section>
-
-  <section id="opportunities" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">05 • SKILL → OPPORTUNITY</p><h2>Opportunities matched to your verified skills</h2></div>
-    </div>
-    <div id="opportunitiesList" class="cards"></div>
-  </section>
-
-  <section id="effectiveness" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">09 • LEARNING EFFECTIVENESS</p><h2>Are you actually improving?</h2></div>
-      <p>The score combines competency, practical performance, project progress and retention evidence.</p>
-    </div>
-    <div class="effectiveness panel">
-      <div class="big-score"><span id="effectivenessScore">0</span><small>/100</small></div>
-      <div class="meter"><div id="effectivenessBar"></div></div>
-      <div id="effectivenessBreakdown" class="breakdown"></div>
-    </div>
-  </section>
-
-  <section id="trainer" class="section">
-    <div class="section-head">
-      <div><p class="eyebrow">14 • TRAINER QUALITY</p><h2>Competency-aware trainer quality</h2></div>
-      <p>Trainer quality is based on learner improvement, practical outcomes, completion and feedback—not only ratings.</p>
-    </div>
-    <div id="trainerCards" class="cards"></div>
-  </section>
-</main>
-
-<footer>Capacity Connect • SIH 2026 prototype</footer>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:16px;text-align:center">
+      Demo mode is for presentation only. Real authentication is available via Login.
+    </p>
+  </div>
 </div>
+
+<!-- ======================================================
+     SCREEN: STUDENT DASHBOARD
+     ====================================================== -->
+<section id="screen-student" class="hidden">
+  <div class="dashboard-header">
+    <div class="container">
+      <div class="flex align-center justify-between">
+        <div>
+          <h2>Welcome back, <span id="student-name">Alex</span> 👋</h2>
+          <div class="role-tag">
+            Target Role: <strong id="student-role">Full Stack Developer</strong>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="CC.go('assessment')">Continue Journey →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-content container">
+    <div class="stats-grid mb-24">
+      <div class="stat-card">
+        <small>Skill Readiness</small>
+        <strong id="stat-readiness">72%</strong>
+        <div class="stat-sub">vs 80% required</div>
+      </div>
+      <div class="stat-card">
+        <small>Skill Gaps</small>
+        <strong id="stat-gaps">4</strong>
+        <div class="stat-sub">critical + needs work</div>
+      </div>
+      <div class="stat-card">
+        <small>Learning Progress</small>
+        <strong id="stat-progress">58%</strong>
+        <div class="stat-sub">2 of 5 modules done</div>
+      </div>
+      <div class="stat-card">
+        <small>Learning Effectiveness</small>
+        <strong id="stat-effectiveness">84%</strong>
+        <div class="stat-sub">↑ +38 REST API gain</div>
+      </div>
+    </div>
+
+    <div class="flex justify-between align-center mb-16">
+      <h3>Your Skill Journey</h3>
+      <span class="badge badge-accent">Full Stack Developer</span>
+    </div>
+    <div class="journey-checklist" id="journey-checklist"></div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: SKILL ASSESSMENT
+     ====================================================== -->
+<section id="screen-assessment" class="hidden">
+  <div class="container">
+    <div class="assessment-header">
+      <span class="eyebrow">SKILL ASSESSMENT</span>
+      <h2>Let's find out where you actually are</h2>
+      <p>10 questions · Mix of MCQ and scenario-based · Results are used to build your personalized path</p>
+    </div>
+
+    <!-- Assessment in progress -->
+    <div id="assessment-in-progress">
+      <div class="question-progress">
+        <div class="q-counter" id="q-counter">Question 1 of 10</div>
+        <div class="q-bar"><div class="q-bar-fill" id="q-bar-fill" style="width:10%"></div></div>
+        <span class="badge badge-blue q-skill-tag" id="q-skill-tag">REST API</span>
+      </div>
+      <div class="question-card">
+        <div id="q-scenario-box" class="scenario-box hidden"></div>
+        <div class="question-text" id="q-text"></div>
+        <div class="options-list" id="q-options"></div>
+        <div class="q-nav-row">
+          <button class="btn btn-secondary btn-sm" id="q-back-btn" onclick="CC.prevQ()" disabled>← Back</button>
+          <button class="btn btn-primary" id="q-next-btn" onclick="CC.nextQ()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assessment results -->
+    <div id="assessment-results" class="hidden">
+      <div class="assessment-results">
+        <div class="score-banner">
+          <div class="big-num" id="result-correct">8</div>
+          <p>of 10 correct · Assessment complete</p>
+        </div>
+        <h3 class="mb-16">Your Skill Scores</h3>
+        <div class="skill-score-grid" id="skill-score-grid"></div>
+        <div class="flex gap-12 mt-32">
+          <button class="btn btn-primary btn-lg" onclick="CC.go('skill-gap')">View My Skill Gaps →</button>
+          <button class="btn btn-secondary" onclick="CC.retakeAssessment()">Retake Assessment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: SKILL GAP ANALYZER
+     ====================================================== -->
+<section id="screen-skill-gap" class="hidden">
+  <div class="container">
+    <div class="gap-header">
+      <span class="eyebrow">SKILL GAP ANALYZER</span>
+      <h2>Exactly what you need to learn</h2>
+      <p>Your current skills compared against what your target role requires. Gaps are color-coded by urgency.</p>
+    </div>
+
+    <div class="gap-insight" id="gap-insight">
+      <div class="gap-insight-title">🎯 Biggest Gap Detected</div>
+      <p id="gap-insight-text">Loading your skill gap analysis...</p>
+    </div>
+
+    <div class="gap-legend">
+      <div class="legend-dot green">Mastered (gap ≤ 5)</div>
+      <div class="legend-dot yellow">Needs Work (gap 6–25)</div>
+      <div class="legend-dot red">Critical Gap (gap > 25)</div>
+    </div>
+
+    <div class="gap-grid" id="gap-grid"></div>
+
+    <div class="flex gap-12 mt-32">
+      <button class="btn btn-primary btn-lg" onclick="CC.go('learning-path')">Generate My Learning Path →</button>
+      <button class="btn btn-secondary" onclick="CC.go('assessment')">Re-take Assessment</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: PERSONALIZED LEARNING PATH
+     ====================================================== -->
+<section id="screen-learning-path" class="hidden">
+  <div class="container">
+    <div class="path-header">
+      <span class="eyebrow">PERSONALIZED LEARNING PATH</span>
+      <h2>Built for your gaps. Skip what you know.</h2>
+      <p>Modules are ordered by your skill gap size — biggest gaps first. Mastered skills are automatically skipped.</p>
+    </div>
+
+    <div class="path-progress-summary">
+      <div class="big-pct" id="path-pct">0%</div>
+      <div class="summary-text">
+        <h4 id="path-summary-title">Start your learning journey</h4>
+        <p id="path-summary-sub">Complete modules to close your skill gaps and unlock competency verification.</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="CC.go('project')">Jump to Project</button>
+    </div>
+
+    <div class="modules-list" id="modules-list"></div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: PROJECT-BASED LEARNING
+     ====================================================== -->
+<section id="screen-project" class="hidden">
+  <div class="container">
+    <div class="project-header">
+      <span class="eyebrow">PROJECT-BASED LEARNING</span>
+      <h2>Apply everything. Build something real.</h2>
+      <p>This project requires you to use every skill in your learning path. It's the practical proof of your learning.</p>
+    </div>
+
+    <div class="project-main" id="project-main">
+      <div class="project-card">
+        <span class="badge badge-orange">CAPSTONE PROJECT</span>
+        <h3 style="margin-top:12px">Full Stack Task Manager</h3>
+        <p>Build a complete task management application using HTML, CSS, JavaScript, Python, FastAPI and PostgreSQL with full CRUD operations and user authentication.</p>
+
+        <div class="project-skills" id="project-skills"></div>
+
+        <div class="project-meta">
+          <span><strong>Difficulty:</strong> Intermediate</span>
+          <span><strong>Time:</strong> ~8 hours</span>
+          <span><strong>Skills:</strong> 8 required</span>
+        </div>
+
+        <h4 class="mb-16">Project Tasks</h4>
+        <div class="task-list" id="task-list"></div>
+
+        <div class="eval-criteria mt-24">
+          <h5>Evaluation Criteria</h5>
+          <ul id="eval-criteria-list"></ul>
+        </div>
+      </div>
+
+      <div>
+        <div class="project-submission-panel">
+          <h4>Submit Your Project</h4>
+          <p>Provide links to your work for evaluation.</p>
+          <div class="form-group">
+            <label class="form-label">GitHub Repository URL</label>
+            <input class="form-input" type="url" id="proj-github" placeholder="https://github.com/you/task-manager">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Live Demo URL (optional)</label>
+            <input class="form-input" type="url" id="proj-demo" placeholder="https://your-demo.vercel.app">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brief Description</label>
+            <textarea class="form-textarea" id="proj-desc" placeholder="Describe what you built, challenges you faced, and what you learned..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="CC.submitProject()">Submit Project →</button>
+          <div id="submission-result" class="hidden submission-result mt-16"></div>
+        </div>
+
+        <div class="card mt-16">
+          <h4 class="mb-16">Project Progress</h4>
+          <div class="progress-wrap thick">
+            <div class="progress-fill" id="proj-progress-bar" style="width:35%"></div>
+          </div>
+          <p class="muted" style="font-size:.82rem;margin-top:8px" id="proj-progress-text">2 of 5 tasks completed · 35%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: PRACTICAL ASSESSMENT
+     ====================================================== -->
+<section id="screen-practical" class="hidden">
+  <div class="container">
+    <div class="practical-header">
+      <span class="eyebrow">PRACTICAL ASSESSMENT</span>
+      <h2>PROVE YOUR SKILL</h2>
+      <p>Course completion is not enough. Answer real-world scenario questions to prove you can apply what you've learned.</p>
+    </div>
+
+    <div id="practical-in-progress">
+      <div class="practical-intro">
+        <p>⚡ These are scenario-based questions. Read each situation carefully and choose the best technical approach.</p>
+      </div>
+
+      <div id="practical-questions"></div>
+
+      <div style="max-width:700px;margin:24px auto 0;display:flex;gap:12px">
+        <button class="btn btn-primary btn-lg" onclick="CC.submitPractical()">Submit Practical Assessment →</button>
+      </div>
+    </div>
+
+    <div id="practical-result" class="hidden">
+      <div class="competency-result">
+        <div class="competency-banner">
+          <div class="verified-icon" id="competency-icon">✅</div>
+          <h3 id="competency-title">COMPETENCY VERIFIED</h3>
+          <p id="competency-subtitle" style="color:var(--muted2);margin:0">Your practical skills have been assessed and verified.</p>
+        </div>
+
+        <h3 class="mb-16">Competency Breakdown</h3>
+        <div class="competency-breakdown">
+          <div class="cb-item">
+            <strong id="cb-course">90%</strong>
+            <small>Course Completion</small>
+          </div>
+          <div class="cb-item">
+            <strong id="cb-assess">82%</strong>
+            <small>Skill Assessment</small>
+          </div>
+          <div class="cb-item">
+            <strong id="cb-practical">78%</strong>
+            <small>Practical Score</small>
+          </div>
+          <div class="cb-item">
+            <strong id="cb-project">85%</strong>
+            <small>Project Score</small>
+          </div>
+        </div>
+
+        <div class="flex gap-12 mt-32 justify-between" style="align-items:flex-start;flex-wrap:wrap">
+          <div class="panel" style="flex:1;min-width:220px">
+            <h4 class="mb-16">Composite Score</h4>
+            <div class="progress-wrap thick mb-16"><div class="progress-fill" id="composite-bar" style="width:83%"></div></div>
+            <strong id="composite-score" style="font-size:1.5rem;color:var(--accent)">83 / 100</strong>
+            <p style="font-size:.82rem;margin-top:4px">Threshold: 75 to verify</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+            <button class="btn btn-primary btn-lg" onclick="CC.go('passport')">View Skill Passport →</button>
+            <button class="btn btn-secondary" onclick="CC.go('opportunities')">Find Opportunities</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: SKILL PASSPORT
+     ====================================================== -->
+<section id="screen-passport" class="hidden">
+  <div class="container">
+    <div class="passport-header">
+      <span class="eyebrow">SKILL PASSPORT</span>
+      <h2>Your verified skills. Permanently on record.</h2>
+      <p>This passport shows only skills that have been verified through assessment, practical tests, and project completion — not just course certificates.</p>
+    </div>
+
+    <div class="passport-card">
+      <div class="passport-top">
+        <div class="passport-top-left">
+          <div class="passport-brand">✦ CAPACITY CONNECT · SKILL PASSPORT</div>
+          <div class="passport-name" id="passport-name">Alex Johnson</div>
+          <div class="passport-role" id="passport-role">Full Stack Developer</div>
+        </div>
+        <div class="passport-qr" title="QR for verification">📱</div>
+      </div>
+
+      <div class="passport-body">
+        <div class="passport-section">
+          <div class="passport-section-title">Verified Skills</div>
+          <div class="passport-skills-grid" id="passport-skills"></div>
+        </div>
+
+        <div class="passport-section">
+          <div class="passport-section-title">Projects Completed</div>
+          <div class="passport-tags" id="passport-projects"></div>
+        </div>
+
+        <div class="passport-section">
+          <div class="passport-section-title">Certifications</div>
+          <div class="passport-tags" id="passport-certs"></div>
+        </div>
+
+        <div class="passport-section" style="margin-bottom:0">
+          <div class="passport-section-title">Verified Competencies</div>
+          <div class="passport-tags" id="passport-competencies"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="passport-actions mt-24">
+      <button class="btn btn-primary" onclick="CC.downloadPassport()">⬇ Download Passport</button>
+      <button class="btn btn-secondary" onclick="CC.go('opportunities')">Find Matching Opportunities →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: OPPORTUNITIES + EFFECTIVENESS
+     ====================================================== -->
+<section id="screen-opportunities" class="hidden">
+  <div class="container">
+    <div class="opp-header">
+      <span class="eyebrow">OPPORTUNITY MATCHING</span>
+      <h2>Matched to your verified skills</h2>
+      <p>Match scores are calculated from your assessed skill levels vs. each opportunity's requirements — not just course certificates.</p>
+    </div>
+
+    <div class="opportunities-grid" id="opportunities-grid"></div>
+
+    <div class="effectiveness-panel mt-16">
+      <span class="eyebrow">LEARNING EFFECTIVENESS SCORE</span>
+      <h3>Are your skills actually improving?</h3>
+      <p class="mb-24">This score compares where you started vs. where you are now — and verifies that learning translated into real skill gain.</p>
+
+      <div class="effectiveness-main">
+        <div class="eff-score-ring">
+          <div class="big-score" id="eff-score">84</div>
+          <small>/ 100</small>
+        </div>
+        <div class="eff-improvements" id="eff-improvements"></div>
+      </div>
+
+      <div class="flex gap-12 mt-24 flex-wrap">
+        <button class="btn btn-primary" onclick="CC.go('assessment')">Re-Assess Skills →</button>
+        <button class="btn btn-secondary" onclick="CC.go('passport')">View Skill Passport</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCREEN: TRAINER DASHBOARD
+     ====================================================== -->
+<section id="screen-trainer" class="hidden">
+  <div class="trainer-sidebar">
+    <div class="trainer-sidebar-brand">Dr. Priya Sharma</div>
+    <div class="trainer-sidebar-name">Trainer · Backend Dev</div>
+    <div class="sidebar-nav">
+      <button class="sidebar-btn active" onclick="CC.trainerTab('overview')">📊 Overview</button>
+      <button class="sidebar-btn" onclick="CC.trainerTab('learners')">👥 My Learners</button>
+      <button class="sidebar-btn" onclick="CC.trainerTab('projects')">📁 Project Reviews</button>
+      <button class="sidebar-btn" onclick="CC.trainerTab('feedback')">💬 Feedback</button>
+      <button class="sidebar-btn" onclick="CC.trainerTab('quality')">⭐ Trainer Quality</button>
+    </div>
+  </div>
+
+  <div class="trainer-main">
+    <!-- Overview -->
+    <div class="trainer-view active" id="tv-overview">
+      <div class="flex justify-between align-center mb-24">
+        <div>
+          <span class="eyebrow">TRAINER CONSOLE</span>
+          <h2>Welcome, Dr. Priya Sharma</h2>
+          <p>Teaching Python, FastAPI, REST API and Backend Development</p>
+        </div>
+      </div>
+      <div class="trainer-stats-grid">
+        <div class="stat-card"><small>Active Learners</small><strong>24</strong></div>
+        <div class="stat-card"><small>Avg Improvement</small><strong>27%</strong></div>
+        <div class="stat-card"><small>Projects to Review</small><strong>6</strong></div>
+        <div class="stat-card"><small>Avg Feedback</small><strong>4.6 ★</strong></div>
+        <div class="stat-card"><small>Quality Score</small><strong style="color:var(--accent)">88</strong></div>
+      </div>
+      <div class="panel mt-24">
+        <h3 class="mb-16">Recent Activity</h3>
+        <div style="display:grid;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+            <div><strong style="font-size:.9rem">Alex Johnson</strong> submitted <em>Full Stack Task Manager</em></div>
+            <span class="badge badge-orange">2h ago</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+            <div><strong style="font-size:.9rem">Kiran Kumar</strong> completed <em>SQL & Database Design</em> module</div>
+            <span class="badge badge-green">30m ago</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+            <div><strong style="font-size:.9rem">Arjun Patel</strong> submitted <em>Portfolio Website</em></div>
+            <span class="badge badge-orange">1d ago</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learners -->
+    <div class="trainer-view hidden" id="tv-learners">
+      <span class="eyebrow">LEARNER PROGRESS</span>
+      <h2 class="mb-24">My Learners</h2>
+      <div class="panel">
+        <table class="learner-table" id="learner-table"></table>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="trainer-view hidden" id="tv-projects">
+      <span class="eyebrow">PROJECT EVALUATION</span>
+      <h2 class="mb-24">Projects to Review</h2>
+      <div id="project-review-list"></div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="trainer-view hidden" id="tv-feedback">
+      <span class="eyebrow">LEARNER FEEDBACK</span>
+      <h2 class="mb-24">Submit Feedback</h2>
+      <div class="panel" style="max-width:560px">
+        <div class="form-group">
+          <label class="form-label">Learner Name</label>
+          <input class="form-input" id="fb-learner" type="text" placeholder="e.g. Alex Johnson">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rating</label>
+          <div class="star-rating" id="star-rating">
+            <button class="star-btn active" data-star="1">★</button>
+            <button class="star-btn active" data-star="2">★</button>
+            <button class="star-btn active" data-star="3">★</button>
+            <button class="star-btn active" data-star="4">★</button>
+            <button class="star-btn" data-star="5">★</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comment</label>
+          <textarea class="form-textarea" id="fb-comment" placeholder="Describe the learner's progress, strengths, and areas to improve..."></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="CC.submitFeedback()">Submit Feedback</button>
+        <div id="fb-result" class="hidden submission-result mt-16"></div>
+      </div>
+    </div>
+
+    <!-- Quality -->
+    <div class="trainer-view hidden" id="tv-quality">
+      <span class="eyebrow">TRAINER QUALITY SCORE</span>
+      <h2 class="mb-24">Your Impact as a Trainer</h2>
+      <div class="quality-score-main">
+        <div class="quality-ring">
+          <div class="quality-score-inner">
+            <div class="big-q">88</div>
+            <small>/ 100</small>
+          </div>
+        </div>
+        <div class="quality-breakdown-rows">
+          <div class="qb-row">
+            <div class="qb-row-info">
+              <h5>Learner Improvement</h5>
+              <small>How much your learners' skills actually grew · Weight: 40%</small>
+              <div class="progress-wrap" style="margin-top:6px"><div class="progress-fill" style="width:90%"></div></div>
+            </div>
+            <div class="qb-score">90</div>
+          </div>
+          <div class="qb-row">
+            <div class="qb-row-info">
+              <h5>Course Completion Rate</h5>
+              <small>% of enrolled learners who finished · Weight: 30%</small>
+              <div class="progress-wrap" style="margin-top:6px"><div class="progress-fill" style="width:85%"></div></div>
+            </div>
+            <div class="qb-score">85</div>
+          </div>
+          <div class="qb-row">
+            <div class="qb-row-info">
+              <h5>Learner Feedback Score</h5>
+              <small>Average satisfaction from learner surveys · Weight: 30%</small>
+              <div class="progress-wrap" style="margin-top:6px"><div class="progress-fill" style="width:89%"></div></div>
+            </div>
+            <div class="qb-score">89</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="max-width:440px">
+        <p style="font-size:.85rem;color:var(--muted2)">
+          <strong style="color:var(--accent)">Quality = Outcome.</strong> Your score is based on learner improvement, not just ratings. A trainer who helps students go from 40 → 78 in REST API outscores one with a 5-star review but no skill gains.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     SCRIPTS
+     ====================================================== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="script.js"></script>

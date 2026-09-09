@@ -1,374 +1,999 @@
-const API = "/api";
-const config = window.CAPACITY_CONNECT_CONFIG || {};
-const supabaseClient = window.supabase && config.supabaseUrl && !config.supabaseUrl.includes("YOUR_")
-  ? window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey)
-  : null;
-let authenticatedUser = null;
-let authenticatedProfile = null;
-let selectedLoginRole = "student";
+/* ================================================================
+   CAPACITY CONNECT — Complete Frontend Logic
+   Single script.js: Router + Demo + Auth + All Feature Screens
+   ================================================================ */
 
-const routeForRole = {student:"/student-dashboard", trainer:"/trainer-dashboard", admin:"/admin-dashboard"};
+/* §1 ── CONFIG ─────────────────────────────────────────────────── */
+const CFG = window.CAPACITY_CONNECT_CONFIG || {};
+const API = '/api';
+const DEMO_KEY    = CFG.demoStorageKey    || 'cc_demo_mode';
+const JOURNEY_KEY = CFG.journeyStorageKey || 'cc_journey';
+const BW_KEY      = CFG.bandwidthStorageKey || 'cc_lowbw';
 
-function showAuthForm(name){
-  document.querySelectorAll(".auth-form").forEach(form=>form.classList.toggle("hidden", form.id !== name));
-  document.getElementById("authNotice").textContent = "";
+/* §2 ── ROLE REQUIREMENTS ──────────────────────────────────────── */
+const ROLE_REQUIREMENTS = {
+  'Full Stack Developer': { HTML:70, CSS:70, JavaScript:85, Python:75, SQL:70, 'REST API':80, Git:65, FastAPI:70, Authentication:65 },
+  'Frontend Developer':   { HTML:80, CSS:80, JavaScript:90, Git:70, Authentication:60 },
+  'Backend Developer':    { Python:80, FastAPI:75, SQL:85, 'REST API':85, Git:70, Authentication:75 },
+  'Data Analyst':         { Python:80, SQL:85, Git:60 }
+};
+
+/* §3 ── DEMO DATA ───────────────────────────────────────────────── */
+const DEMO_STUDENT = {
+  name: 'Alex Johnson', role: 'Full Stack Developer',
+  skills: { HTML:90, CSS:85, JavaScript:72, Python:65, SQL:48, 'REST API':40, Git:75, FastAPI:45, Authentication:35 },
+  skill_readiness: 72, skill_gaps: 4, learning_progress: 58, learning_effectiveness: 84,
+  journey: { assessment:true, gap_analysis:true, learning_path:true, learn_practice:58, project:35, competency:false, passport:true, opportunities:6 }
+};
+
+const DEMO_TRAINER = {
+  name: 'Dr. Priya Sharma', expertise: ['Python','FastAPI','REST API','Backend Development'],
+  active_learners:24, avg_improvement:27, projects_to_review:6, avg_feedback:4.6, quality_score:88,
+  quality_breakdown: { learner_improvement:90, course_completion:85, learner_feedback:89 },
+  learners: [
+    { name:'Alex Johnson',  role:'Full Stack Developer', progress:58, skill_readiness:72, last_active:'2h ago' },
+    { name:'Priya Nair',    role:'Backend Developer',    progress:82, skill_readiness:85, last_active:'1d ago' },
+    { name:'Arjun Patel',   role:'Frontend Developer',   progress:45, skill_readiness:61, last_active:'3h ago' },
+    { name:'Sneha Reddy',   role:'Full Stack Developer', progress:71, skill_readiness:78, last_active:'5h ago' },
+    { name:'Kiran Kumar',   role:'Data Analyst',         progress:90, skill_readiness:91, last_active:'30m ago' }
+  ],
+  projects_pending: [
+    { student:'Alex Johnson', project:'Full Stack Task Manager', submitted:'2h ago', status:'pending' },
+    { student:'Arjun Patel',  project:'Portfolio Website',       submitted:'1d ago', status:'pending' }
+  ]
+};
+
+const ASSESSMENT_QUESTIONS = [
+  { id:'q1', skill:'REST API',        question:'What HTTP method should be used to retrieve data from an API without side effects?',     options:['POST','GET','PUT','DELETE'],                       correct:1 },
+  { id:'q2', skill:'REST API',        question:'A REST API returns status code 404. What does this mean?',                              options:['Server error','Unauthorized','Resource not found','Success'], correct:2 },
+  { id:'q3', skill:'SQL',             question:'Which SQL clause filters rows AFTER aggregation?',                                       options:['WHERE','HAVING','GROUP BY','ORDER BY'],            correct:1 },
+  { id:'q4', skill:'SQL',             question:'What is the purpose of a database index?',                                              options:['Store backups','Speed up query lookups','Encrypt data','Create relationships'], correct:1 },
+  { id:'q5', skill:'JavaScript',      question:'Which JavaScript concept handles asynchronous operations?',                              options:['Closures','Prototypes','Promises / async-await','Symbols'], correct:2 },
+  { id:'q6', skill:'JavaScript',      question:'What does the Array.map() method return?',                                              options:['The original array mutated','A new array with transformed elements','A single value','A boolean'], correct:1 },
+  { id:'q7', skill:'Python',          question:'Which Python keyword is used to define a generator function?',                           options:['return','async','yield','lambda'],                 correct:2 },
+  { id:'q8', skill:'Python',          question:'What does FastAPI use to validate request body data?',                                   options:['Marshmallow','Pydantic','Cerberus','Voluptuous'], correct:1 },
+  { id:'q9', skill:'Git',             question:'Which Git command integrates changes from one branch into another?',                     options:['git clone','git push','git merge','git fetch'],   correct:2 },
+  { id:'q10',skill:'Authentication',  question:'Where should a JWT access token be stored in a browser for security?',                  options:['localStorage','sessionStorage','Memory (JS variable)','URL query string'], correct:2 }
+];
+
+const PRACTICAL_QUESTIONS = [
+  { id:'p1', skill:'REST API', scenario:'You are designing an API endpoint to create a new user account.',
+    question:'Which HTTP method and URL pattern is most RESTful?',
+    options:['GET /users/create','POST /users','PUT /user/new','PATCH /accounts'], correct:1 },
+  { id:'p2', skill:'SQL', scenario:'A table "orders" has 10 million rows. Queries filtering by customer_id are very slow.',
+    question:'What is the most effective solution?',
+    options:['Add more RAM to the server','Use SELECT * instead of specific columns','Create an index on customer_id','Split the table into two tables'], correct:2 },
+  { id:'p3', skill:'JavaScript', scenario:'Your fetch() call to an API sometimes returns data and sometimes throws an error.',
+    question:'What is the correct way to handle both cases?',
+    options:['Use try/catch with async/await','Call the API twice','Check navigator.online before fetching','Use synchronous XMLHttpRequest'], correct:0 }
+];
+
+const LEARNING_MODULES = [
+  { id:'m1', skill:'REST API', title:'REST API Fundamentals', description:'Learn HTTP methods, status codes, request/response cycles and how to design clean REST endpoints.', difficulty:'Beginner', duration_hrs:3, position:1,
+    objectives:['Understand HTTP methods: GET, POST, PUT, DELETE','Design resource-based URL structures','Handle status codes (200, 201, 400, 401, 404, 500)','Parse JSON request and response bodies','Test endpoints with Postman'],
+    resources:[{title:'MDN HTTP Overview',url:'https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview'},{title:'REST API Design Guide',url:'https://restfulapi.net'}] },
+  { id:'m2', skill:'SQL', title:'SQL & Database Design', description:'Master SELECT, JOIN, GROUP BY, indexes and schema design patterns used in real production databases.', difficulty:'Beginner', duration_hrs:4, position:2,
+    objectives:['Write SELECT queries with WHERE and ORDER BY','Use INNER JOIN, LEFT JOIN across related tables','Aggregate data with GROUP BY and HAVING','Create indexes for query performance','Design normalized schemas'],
+    resources:[{title:'SQLZoo Interactive Tutorial',url:'https://sqlzoo.net'},{title:'PostgreSQL Docs',url:'https://www.postgresql.org/docs/current/tutorial.html'}] },
+  { id:'m3', skill:'FastAPI', title:'FastAPI Backend Development', description:'Build async Python APIs with FastAPI, Pydantic models, dependency injection, and auto-generated OpenAPI docs.', difficulty:'Intermediate', duration_hrs:5, position:3,
+    objectives:['Create GET and POST endpoints','Define Pydantic request and response models','Use dependency injection for auth and DB','Return structured JSON responses','Use FastAPI /docs'],
+    resources:[{title:'FastAPI Official Tutorial',url:'https://fastapi.tiangolo.com/tutorial/'},{title:'Pydantic Docs',url:'https://docs.pydantic.dev'}] },
+  { id:'m4', skill:'Authentication', title:'Authentication & Security', description:'Implement JWT auth, secure password hashing, session management and role-based access control.', difficulty:'Intermediate', duration_hrs:3, position:4,
+    objectives:['Hash passwords with bcrypt','Issue and verify JWT tokens','Protect routes with Bearer token middleware','Implement role-based access','Understand CORS and security headers'],
+    resources:[{title:'JWT Introduction',url:'https://jwt.io/introduction'},{title:'OWASP Auth Cheat Sheet',url:'https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html'}] },
+  { id:'m5', skill:'Full Stack', title:'Full Stack Integration', description:'Connect a JavaScript frontend to a FastAPI backend backed by PostgreSQL. Deploy end-to-end.', difficulty:'Advanced', duration_hrs:8, position:5,
+    objectives:['Wire fetch() calls from HTML/JS to FastAPI endpoints','Handle auth tokens in frontend requests','Display API data with DOM manipulation','Connect FastAPI to Supabase/PostgreSQL','Deploy frontend and backend together'],
+    resources:[{title:'MDN Fetch API',url:'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch'},{title:'Supabase Quickstart',url:'https://supabase.com/docs/guides/getting-started'}] }
+];
+
+const OPPORTUNITIES_DATA = [
+  { id:'o1', title:'Frontend Developer Internship', company:'TechStart India',        type:'Internship', required_skills:[{skill:'HTML',level:70},{skill:'CSS',level:70},{skill:'JavaScript',level:80},{skill:'Git',level:60}] },
+  { id:'o2', title:'Backend Developer Internship',  company:'DataBridge Solutions',   type:'Internship', required_skills:[{skill:'Python',level:75},{skill:'FastAPI',level:70},{skill:'SQL',level:75},{skill:'REST API',level:80},{skill:'Git',level:65}] },
+  { id:'o3', title:'Junior Full Stack Internship',  company:'BuildFast Technologies', type:'Internship', required_skills:[{skill:'JavaScript',level:75},{skill:'Python',level:70},{skill:'SQL',level:70},{skill:'REST API',level:75},{skill:'Git',level:65}] },
+  { id:'o4', title:'Python Developer Internship',   company:'Analytics Hub',          type:'Internship', required_skills:[{skill:'Python',level:80},{skill:'SQL',level:70},{skill:'Git',level:65}] },
+  { id:'o5', title:'Web Development Project',       company:'GovTech Initiative',     type:'Project',    required_skills:[{skill:'HTML',level:70},{skill:'CSS',level:70},{skill:'JavaScript',level:75},{skill:'REST API',level:65}] }
+];
+
+/* §4 ── STATE ───────────────────────────────────────────────────── */
+const state = {
+  currentScreen: 'landing',
+  demoRole: null,               // 'student' | 'trainer' | null
+  assessmentAnswers: [],        // index per question
+  currentQuestion: 0,
+  assessmentScores: {},         // { skill: score }
+  skillGaps: [],                // computed gaps array
+  moduleProgress: {},           // { moduleId: true/false }
+  projectTasks: {},             // { taskId: true/false }
+  practicalAnswers: {},         // { qId: answerIndex }
+  practicalScore: 0,
+  projectSubmitted: false,
+  starRating: 4,
+  trainerActiveTab: 'overview',
+  journeyProgress: loadJourney(),
+  supabaseClient: null
+};
+
+function loadJourney() {
+  try { return JSON.parse(localStorage.getItem(JOURNEY_KEY)) || {}; } catch { return {}; }
+}
+function saveJourney() {
+  localStorage.setItem(JOURNEY_KEY, JSON.stringify(state.journeyProgress));
 }
 
-function authMessage(message, type="error"){
-  const notice=document.getElementById("authNotice");
-  notice.textContent=message;
-  notice.className=`auth-notice ${type}`;
-}
+/* §5 ── ROUTER ─────────────────────────────────────────────────── */
+const ALL_SCREENS = ['landing','login','student','assessment','skill-gap','learning-path','project','practical','passport','opportunities','trainer'];
+const STUDENT_SCREENS = ['student','assessment','skill-gap','learning-path','project','practical','passport','opportunities'];
+const JOURNEY_MAP = { 'assessment':1, 'skill-gap':2, 'learning-path':3, 'project':4, 'practical':5, 'passport':6, 'opportunities':7 };
 
-function setLoading(form, loading){
-  const button=form.querySelector(".auth-submit");
-  button.disabled=loading;
-  button.textContent=loading?"Please wait…":(form.id==="loginForm"?"Sign in":form.id==="signupForm"?"Create account":"Send recovery link");
-}
+const CC = {
+  go(screen) {
+    // Hide all screens
+    ALL_SCREENS.forEach(s => {
+      const el = document.getElementById('screen-' + s);
+      if (el) el.classList.add('hidden');
+    });
 
-async function loadProfile(user){
-  const {data, error}=await supabaseClient.from("profiles").select("id,full_name,email,role,approval_status,avatar_url").eq("id",user.id).single();
-  if(error) throw new Error(`Profile lookup failed: ${error.message}. Run the latest auth_schema.sql in Supabase.`);
-  if(!data) throw new Error("No profile exists for this account. Run auth_schema.sql in Supabase, then check the profiles table.");
-  authenticatedProfile=data;
-  return data;
-}
+    // Show target screen
+    const target = document.getElementById('screen-' + screen);
+    if (target) target.classList.remove('hidden');
+    state.currentScreen = screen;
 
-function redirectForProfile(profile){
-  if(profile.role==="trainer" && profile.approval_status!=="approved"){
-    showLogin(`Trainer account status: ${profile.approval_status}. An administrator must approve this account before dashboard access.`);
-    return;
-  }
-  const expected=Object.entries(routeForRole).find(([,path])=>location.pathname===path)?.[0];
-  if(expected && expected!==profile.role){
-    authMessage(`This account is not registered as a ${expected}. Redirecting to your dashboard.`);
-    history.replaceState({},"",routeForRole[profile.role]);
-  } else if(location.pathname==="/login" || location.pathname==="/signup" || location.pathname==="/reset-password" || location.pathname==="/"){
-    history.replaceState({},"",routeForRole[profile.role]);
-  }
-  document.getElementById("authShell").classList.add("hidden");
-  document.getElementById("appShell").classList.remove("hidden");
-  document.getElementById("userGreeting").textContent=`${profile.full_name || profile.email} · ${profile.role}`;
-  document.body.dataset.role=profile.role;
-  showRoleDashboard(profile.role);
-  const workspace=document.getElementById("roleWorkspace");
-  const workspaceCopy={
-    student:["Student workspace","Skill Gap Analyzer, personalized learning paths, projects, assessments, certifications and opportunity matching.","Continue learning"],
-    trainer:["Trainer workspace","Manage assigned learning content, practical assessments, trainee participation, feedback and your Trainer Quality Score.","Open trainer tools"],
-    admin:["Admin workspace","Platform overview, user approvals, course governance, assessment oversight, certifications and analytics.","Open administration"]
-  }[profile.role];
-  workspace.innerHTML=`<div><p class="eyebrow">${profile.role.toUpperCase()} DASHBOARD</p><h2>Welcome, ${profile.full_name || profile.email}</h2><p class="muted">${workspaceCopy[1]}</p></div><button class="secondary" onclick="scrollToId('dashboard')">${workspaceCopy[2]}</button>`;
-}
-
-function showLogin(message=""){
-  document.getElementById("appShell").classList.add("hidden");
-  document.getElementById("authShell").classList.remove("hidden");
-  document.getElementById("trainerDashboard").classList.add("hidden");
-  document.getElementById("adminDashboard").classList.add("hidden");
-  showAuthForm("loginForm");
-  if(message) authMessage(message);
-}
-
-async function handleSession(session){
-  if(!supabaseClient){
-    showLogin("Add your Supabase URL and publishable key to supabase-config.js to enable authentication.");
-    return;
-  }
-  if(!session){
-    authenticatedUser=null; authenticatedProfile=null; showLogin(); return;
-  }
-  try{ authenticatedUser=session.user; redirectForProfile(await loadProfile(session.user)); }
-  catch(error){ await supabaseClient.auth.signOut(); showLogin(error.message); }
-}
-
-function showRoleDashboard(role){
-  document.getElementById("trainerDashboard").classList.toggle("hidden",role!=="trainer");
-  document.getElementById("adminDashboard").classList.toggle("hidden",role!=="admin");
-  document.querySelectorAll("main > section:not(#roleWorkspace):not(#trainerDashboard):not(#adminDashboard)").forEach(section=>section.classList.toggle("role-hidden",role!=="student"));
-  if(role==="trainer") loadTrainerDashboard();
-  if(role==="admin") loadAdminDashboard();
-}
-
-async function login(event){
-  event.preventDefault(); const form=event.currentTarget; setLoading(form,true);
-  const {error}=await supabaseClient.auth.signInWithPassword({email:loginEmail.value.trim(),password:loginPassword.value});
-  setLoading(form,false);
-  if(error){authMessage(error.message);return;}
-  try{
-    const {data:{user}}=await supabaseClient.auth.getUser();
-    const profile=await loadProfile(user);
-    if(profile.role!==selectedLoginRole){
-      await supabaseClient.auth.signOut();
-      authMessage(`This account is not registered as a ${selectedLoginRole}.`); return;
+    // Nav bar visibility
+    const nav = document.getElementById('global-nav');
+    const journeyBar = document.getElementById('journey-bar');
+    if (screen === 'landing') {
+      nav.classList.add('hidden');
+      journeyBar.classList.add('hidden');
+    } else {
+      nav.classList.remove('hidden');
+      // Show journey bar only on student screens
+      const isStudentScreen = STUDENT_SCREENS.includes(screen);
+      journeyBar.classList.toggle('hidden', !isStudentScreen || state.demoRole === 'trainer');
     }
-    redirectForProfile(profile);
-  }catch(error){await supabaseClient.auth.signOut();authMessage(error.message);}
-}
 
-async function signup(event){
-  event.preventDefault(); const form=event.currentTarget; const password=signupPassword.value;
-  if(!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)){authMessage("Password must be at least 8 characters and include uppercase, lowercase, and a number.");return;}
-  if(password!==signupConfirm.value){authMessage("Passwords do not match.");return;}
-  setLoading(form,true);
-  const {data,error}=await supabaseClient.auth.signUp({email:signupEmail.value.trim(),password,options:{data:{full_name:signupName.value.trim(),role:signupRole.value}}});
-  setLoading(form,false);
-  if(error){authMessage(error.message);return;}
-  if(data.session) redirectForProfile(await loadProfile(data.user));
-  else {showLogin();authMessage(`Account created successfully. Check ${signupEmail.value.trim()} for the confirmation email, click its link, then sign in.`,"success");}
-}
+    // Update journey bar active step
+    const step = JOURNEY_MAP[screen];
+    if (step) updateJourneyBar(step);
 
-async function resetPassword(event){
-  event.preventDefault(); const form=event.currentTarget; setLoading(form,true);
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(resetEmail.value.trim(),{redirectTo:`${location.origin}/reset-password`});
-  setLoading(form,false);
-  if(error){authMessage(error.message);return;}
-  authMessage("Check your email for a secure password reset link.","success");
-}
+    // Show correct nav buttons
+    updateNavButtons();
 
-async function updatePassword(event){
-  event.preventDefault(); const form=event.currentTarget;
-  if(!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(newPassword.value)){authMessage("Password must be at least 8 characters and include uppercase, lowercase, and a number.");return;}
-  if(newPassword.value!==newPasswordConfirm.value){authMessage("Passwords do not match.");return;}
-  setLoading(form,true); const {error}=await supabaseClient.auth.updateUser({password:newPassword.value}); setLoading(form,false);
-  if(error){authMessage(error.message);return;}
-  await supabaseClient.auth.signOut(); showLogin("Password updated successfully. Please sign in.");
-}
+    // Initialize screen content
+    initScreen(screen);
 
-function wireAuth(){
-  document.querySelectorAll("[data-login-role]").forEach(button=>button.addEventListener("click",()=>{
-    selectedLoginRole=button.dataset.loginRole;
-    document.querySelectorAll("[data-login-role]").forEach(item=>item.classList.toggle("active",item===button));
-  }));
-  document.querySelectorAll(".password-toggle").forEach(button=>button.addEventListener("click",()=>{
-    const input=document.getElementById(button.dataset.target); const visible=input.type==="text";
-    input.type=visible?"password":"text";button.textContent=visible?"Show":"Hide";
-  }));
-  signupPassword.addEventListener("input",()=>{passwordStrength.textContent=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(signupPassword.value)?"Strong password":"Use 8+ characters with uppercase, lowercase and a number.";});
-  signupRole.addEventListener("change",()=>{if(signupRole.value==="admin"){signupRole.value="student";authMessage("Admin accounts can only be created or promoted by an existing administrator.");}});
-  loginForm.addEventListener("submit",login); signupForm.addEventListener("submit",signup); resetForm.addEventListener("submit",resetPassword); updatePasswordForm.addEventListener("submit",updatePassword);
-  signupLink.addEventListener("click",()=>showAuthForm("signupForm")); loginLink.addEventListener("click",()=>showAuthForm("loginForm"));
-  forgotLink.addEventListener("click",()=>showAuthForm("resetForm")); resetBackLink.addEventListener("click",()=>showAuthForm("loginForm"));
-  logoutButton.addEventListener("click",async()=>{await supabaseClient.auth.signOut();history.replaceState({},"","/login");});
-  if(supabaseClient) supabaseClient.auth.onAuthStateChange((event,session)=>{
-    if(event==="PASSWORD_RECOVERY"){showAuthForm("updatePasswordForm");return;}
-    handleSession(session);
-  });
-  if(supabaseClient) supabaseClient.auth.getSession().then(({data})=>handleSession(data.session)); else handleSession(null);
-}
-
-async function apiFetch(path, options={}){
-  const {data}=await supabaseClient.auth.getSession();
-  const headers=new Headers(options.headers || {});
-  if(data.session) headers.set("Authorization",`Bearer ${data.session.access_token}`);
-  return fetch(path,{...options,headers});
-}
-
-function dashboardStats(items){
-  return items.map(([label,value])=>`<div class="stat"><small>${label}</small><strong>${value}</strong></div>`).join("");
-}
-
-async function loadTrainerDashboard(){
-  const response=await apiFetch(`${API}/trainer/courses`);
-  if(!response.ok){document.getElementById("trainerStats").innerHTML=`<div class="panel dashboard-error">Unable to load trainer data.</div>`;return;}
-  const courses=await response.json();
-  document.getElementById("trainerStats").innerHTML=dashboardStats([["Total courses",courses.length],["Published",courses.filter(c=>c.status==="published").length],["Drafts",courses.filter(c=>c.status==="draft").length],["Pending review",courses.filter(c=>c.status==="pending").length]]);
-  document.getElementById("trainerActivity").innerHTML=`<h3>Recent activity</h3><p class="muted">${courses.length?"Your latest course updates are ready in My Courses.":"Create your first course to begin teaching."}</p>`;
-  renderTrainerCourses(courses);
-  document.getElementById("trainerProfileText").textContent=`Signed in as ${authenticatedProfile.full_name || authenticatedProfile.email}. Course ownership and publishing are enforced by the API.`;
-}
-
-function renderTrainerCourses(courses){
-  document.getElementById("trainerCourses").innerHTML=courses.length?courses.map(course=>`<article class="card course-card"><span class="badge">${course.status.toUpperCase()}</span><h3>${escapeHtml(course.title)}</h3><p class="muted">${escapeHtml(course.category)} · ${escapeHtml(course.difficulty)} · ${course.duration_minutes} min</p><p>${escapeHtml(course.description || "No description yet.")}</p><div class="course-actions"><button class="secondary" data-course-status="${course.id}" data-status="${course.status==="published"?"draft":"published"}">${course.status==="published"?"Unpublish":"Publish"}</button><button class="text-button" data-course-delete="${course.id}">Delete</button></div></article>`).join(""):"<div class=\"panel empty-state\"><h3>No courses yet</h3><p class=\"muted\">Create a draft course to get started.</p></div>";
-  document.querySelectorAll("[data-course-status]").forEach(button=>button.addEventListener("click",async()=>{await apiFetch(`${API}/trainer/courses/${button.dataset.courseStatus}/status`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:button.dataset.status})});loadTrainerDashboard();}));
-  document.querySelectorAll("[data-course-delete]").forEach(button=>button.addEventListener("click",async()=>{if(confirm("Delete this course?")){await apiFetch(`${API}/trainer/courses/${button.dataset.courseDelete}`,{method:"DELETE"});loadTrainerDashboard();}}));
-}
-
-async function loadAdminDashboard(){
-  const [overviewResponse,usersResponse,coursesResponse]=await Promise.all([apiFetch(`${API}/admin/overview`),apiFetch(`${API}/admin/users`),apiFetch(`${API}/trainer/courses`)]);
-  if(!overviewResponse.ok){document.getElementById("adminStats").innerHTML=`<div class="panel dashboard-error">Unable to load admin data.</div>`;return;}
-  const overview=await overviewResponse.json(); const users=await usersResponse.json(); const courses=await coursesResponse.json();
-  document.getElementById("adminStats").innerHTML=dashboardStats([["Students",overview.students],["Trainers",overview.trainers],["Admins",overview.admins],["Courses",overview.courses],["Published",overview.published_courses],["Pending trainers",overview.pending_trainers],["Enrollments",overview.enrollments],["Completion",`${overview.completion_rate}%`]]);
-  renderAdminUsers(users);renderAdminApprovals(users);document.getElementById("adminCourses").innerHTML=courses.length?courses.map(course=>`<p><b>${escapeHtml(course.title)}</b> · ${course.status} · ${course.category}</p>`).join(""):"<p class=\"muted\">No courses created yet.</p>";
-}
-
-function renderAdminUsers(users){
-  const render=filter=>{const visible=users.filter(user=>(`${user.full_name||""} ${user.email||""}`).toLowerCase().includes(filter.toLowerCase()));document.getElementById("adminUsers").innerHTML=visible.map(user=>`<div class="table-row"><span><b>${escapeHtml(user.full_name||"Unnamed")}</b><small>${escapeHtml(user.email||"")}</small></span><span class="badge">${user.role}</span><span>${user.approval_status}</span></div>`).join("")||"<p class=\"muted\">No matching users.</p>";};render("");userSearch.oninput=()=>render(userSearch.value);}
-
-function renderAdminApprovals(users){
-  const pending=users.filter(user=>user.role==="trainer"&&user.approval_status==="pending");document.getElementById("adminApprovals").innerHTML=pending.length?pending.map(user=>`<article class="card"><span class="badge">PENDING</span><h3>${escapeHtml(user.full_name||"Unnamed trainer")}</h3><p class="muted">${escapeHtml(user.email||"")}</p><button class="primary" data-approve-user="${user.id}">Approve trainer</button><button class="secondary" data-reject-user="${user.id}">Reject</button></article>`).join(""):"<div class=\"panel empty-state\"><h3>Approval queue is clear</h3><p class=\"muted\">No trainers are waiting for review.</p></div>";
-  document.querySelectorAll("[data-approve-user],[data-reject-user]").forEach(button=>button.addEventListener("click",async()=>{await apiFetch(`${API}/admin/users/${button.dataset.approveUser||button.dataset.rejectUser}/approval`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:button.dataset.approveUser?"approved":"rejected"})});loadAdminDashboard();}));
-}
-
-function escapeHtml(value){return String(value).replace(/[&<>'"]/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character]));}
-
-function wireDashboard(){
-  document.querySelectorAll("[data-trainer-view]").forEach(button=>button.addEventListener("click",()=>{const view=button.dataset.trainerView;document.querySelectorAll("#trainerDashboard .dashboard-view").forEach(item=>item.classList.add("hidden"));document.getElementById(`trainer${view[0].toUpperCase()+view.slice(1)}View`).classList.remove("hidden");}));
-  document.querySelectorAll("[data-admin-view]").forEach(button=>button.addEventListener("click",()=>{const view=button.dataset.adminView;document.querySelectorAll("#adminDashboard .dashboard-view").forEach(item=>item.classList.add("hidden"));document.getElementById(`admin${view[0].toUpperCase()+view.slice(1)}View`).classList.remove("hidden");}));
-  courseForm.addEventListener("submit",async event=>{event.preventDefault();const response=await apiFetch(`${API}/trainer/courses`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:courseTitle.value,description:courseDescription.value,category:courseCategory.value,difficulty:courseDifficulty.value,duration_minutes:Number(courseDuration.value)})});if(response.ok){courseForm.reset();loadTrainerDashboard();document.querySelector('[data-trainer-view="courses"]').click();}else{alert("Course could not be saved. Ensure your trainer account is approved.");}});
-}
-
-function wireBandwidth(){
-  const enabled=localStorage.getItem("capacity-connect-low-bandwidth")==="true";
-  document.body.classList.toggle("low-bandwidth",enabled);lowBandwidthToggle.checked=enabled;
-  lowBandwidthToggle.addEventListener("change",()=>{document.body.classList.toggle("low-bandwidth",lowBandwidthToggle.checked);localStorage.setItem("capacity-connect-low-bandwidth",String(lowBandwidthToggle.checked));});
-}
-
-wireAuth();
-wireDashboard();
-wireBandwidth();
-
-const roleSkills = {
-  fullstack: {
-    "HTML":70,"CSS":70,"JavaScript":85,"React":80,"Node.js":75,"SQL":70,"Git":65,"Testing":60
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   },
-  frontend: {
-    "HTML":80,"CSS":80,"JavaScript":90,"React":85,"Git":70,"Testing":65
+
+  enterDemo(role) {
+    state.demoRole = role;
+    localStorage.setItem(DEMO_KEY, role);
+    document.getElementById('demo-modal').classList.add('hidden');
+    document.getElementById('demo-badge').classList.remove('hidden');
+    if (role === 'student') {
+      CC.go('student');
+    } else {
+      CC.go('trainer');
+    }
   },
-  backend: {
-    "Python":80,"FastAPI":75,"SQL":85,"APIs":85,"Git":70,"Testing":70
+
+  exitDemo() {
+    state.demoRole = null;
+    localStorage.removeItem(DEMO_KEY);
+    document.getElementById('demo-badge').classList.add('hidden');
+    CC.go('landing');
   },
-  data: {
-    "Python":80,"SQL":85,"Statistics":75,"Pandas":80,"Data Visualization":75,"Git":60
+
+  login() {
+    const email = document.getElementById('login-email').value.trim();
+    const pw    = document.getElementById('login-password').value;
+    if (!email || !pw) { showAuthMsg('Enter email and password.'); return; }
+    if (!state.supabaseClient) { showAuthMsg('Supabase not configured. Use Demo Login.'); return; }
+    state.supabaseClient.auth.signInWithPassword({ email, password: pw })
+      .then(({ data, error }) => {
+        if (error) { showAuthMsg(error.message); return; }
+        CC.go('student');
+      });
+  },
+
+  signup() {
+    const name  = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const pw    = document.getElementById('signup-password').value;
+    const role  = document.getElementById('signup-role').value;
+    if (!name || !email || !pw) { showAuthMsg('Fill all fields.'); return; }
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pw)) {
+      showAuthMsg('Password: 8+ chars, uppercase, lowercase, number.'); return;
+    }
+    if (!state.supabaseClient) { showAuthMsg('Supabase not configured. Use Demo Login.'); return; }
+    state.supabaseClient.auth.signUp({ email, password: pw, options: { data: { full_name: name, role } } })
+      .then(({ error }) => {
+        if (error) { showAuthMsg(error.message); return; }
+        showAuthMsg('Account created! Check email for confirmation link.', 'success');
+      });
+  },
+
+  showForm(form) {
+    document.getElementById('login-form').classList.toggle('hidden', form !== 'login');
+    document.getElementById('signup-form').classList.toggle('hidden', form !== 'signup');
+    document.getElementById('auth-notice').textContent = '';
+  },
+
+  // Assessment
+  nextQ() {
+    const opts = document.querySelectorAll('.option-btn');
+    const hasAnswer = [...opts].some(b => b.classList.contains('selected'));
+    if (!hasAnswer) {
+      highlightNoSelection(); return;
+    }
+    if (state.currentQuestion < ASSESSMENT_QUESTIONS.length - 1) {
+      state.currentQuestion++;
+      renderQuestion(state.currentQuestion);
+    } else {
+      finishAssessment();
+    }
+  },
+  prevQ() {
+    if (state.currentQuestion > 0) {
+      state.currentQuestion--;
+      renderQuestion(state.currentQuestion);
+    }
+  },
+  retakeAssessment() {
+    state.assessmentAnswers = [];
+    state.currentQuestion = 0;
+    document.getElementById('assessment-in-progress').classList.remove('hidden');
+    document.getElementById('assessment-results').classList.add('hidden');
+    renderQuestion(0);
+  },
+
+  // Project
+  submitProject() {
+    const github = document.getElementById('proj-github').value.trim();
+    const demo   = document.getElementById('proj-demo').value.trim();
+    const desc   = document.getElementById('proj-desc').value.trim();
+    if (!github && !desc) {
+      alert('Please provide a GitHub URL or description before submitting.'); return;
+    }
+    state.projectSubmitted = true;
+    state.journeyProgress.project = true;
+    saveJourney();
+    const result = document.getElementById('submission-result');
+    result.classList.remove('hidden');
+    result.innerHTML = `<strong style="color:var(--accent)">✅ Project Submitted!</strong><br>
+      <span style="font-size:.85rem;color:var(--muted2)">Score: 85/100 · Feedback: Strong implementation. All required skills demonstrated.</span>`;
+    document.querySelector('.project-submission-panel .btn-primary').textContent = '✓ Submitted';
+    document.querySelector('.project-submission-panel .btn-primary').disabled = true;
+  },
+
+  // Practical
+  submitPractical() {
+    let correct = 0;
+    const total = PRACTICAL_QUESTIONS.length;
+    PRACTICAL_QUESTIONS.forEach(q => {
+      const ans = state.practicalAnswers[q.id];
+      if (ans !== undefined && ans === q.correct) correct++;
+    });
+    const score = Math.round((correct / total) * 100);
+    const finalScore = Math.max(score, state.practicalAnswers && Object.keys(state.practicalAnswers).length > 0 ? 50 : 0);
+    state.practicalScore = finalScore;
+    state.journeyProgress.practical = true;
+    state.journeyProgress.competency = finalScore >= 70;
+    saveJourney();
+
+    const composite = Math.round(90*0.25 + 82*0.25 + finalScore*0.30 + 85*0.20);
+    const verified = composite >= 75;
+
+    document.getElementById('practical-in-progress').classList.add('hidden');
+    document.getElementById('practical-result').classList.remove('hidden');
+    document.getElementById('cb-practical').textContent = finalScore + '%';
+    document.getElementById('composite-bar').style.width = composite + '%';
+    document.getElementById('composite-score').textContent = composite + ' / 100';
+    document.getElementById('competency-icon').textContent = verified ? '✅' : '⚠️';
+    document.getElementById('competency-title').textContent = verified ? 'COMPETENCY VERIFIED ✓' : 'ASSESSMENT COMPLETE';
+    document.getElementById('competency-subtitle').textContent = verified
+      ? 'Your practical skills meet the competency threshold. Certificate unlocked.'
+      : `Score ${composite}/100 is below the 75-point threshold. Keep learning and re-assess.`;
+
+    // Save to API
+    apiFetch(`${API}/practical/evaluate`, { method:'POST', body: JSON.stringify({ answers: state.practicalAnswers }) }).catch(()=>{});
+  },
+
+  // Passport
+  downloadPassport() {
+    const text = `CAPACITY CONNECT — SKILL PASSPORT
+${'─'.repeat(40)}
+Name: ${DEMO_STUDENT.name}
+Target Role: ${DEMO_STUDENT.role}
+Issue Date: ${new Date().toLocaleDateString()}
+${'─'.repeat(40)}
+
+VERIFIED SKILLS
+REST API:       78%  ✓ Verified
+JavaScript:     82%  ✓ Verified
+Python:         76%  ✓ Verified
+Git:            84%  ✓ Verified
+HTML:           90%  ✓ Verified
+CSS:            85%  ✓ Verified
+SQL:            68%
+FastAPI:        72%
+
+PROJECTS COMPLETED
+✓ Full Stack Task Manager (Score: 85/100)
+
+CERTIFICATIONS
+✓ Backend Development Certificate · ID: CC-DEMO0001
+
+COMPETENCIES VERIFIED
+✓ REST API Development
+✓ Backend Development
+${'─'.repeat(40)}
+Issued by Capacity Connect · SIH 2026`;
+    const blob = new Blob([text], { type:'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'CapacityConnect-SkillPassport-AlexJohnson.txt';
+    a.click(); URL.revokeObjectURL(url);
+  },
+
+  // Trainer tabs
+  trainerTab(tab) {
+    state.trainerActiveTab = tab;
+    document.querySelectorAll('.trainer-view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+    const view = document.getElementById('tv-' + tab);
+    if (view) view.classList.add('active');
+    const btn = [...document.querySelectorAll('.sidebar-btn')].find(b => b.textContent.toLowerCase().includes(tab.substring(0,4)));
+    if (btn) btn.classList.add('active');
+    if (tab === 'learners') renderLearnerTable();
+    if (tab === 'projects') renderProjectReviews();
+  },
+
+  // Feedback
+  submitFeedback() {
+    const learner = document.getElementById('fb-learner').value.trim();
+    const comment = document.getElementById('fb-comment').value.trim();
+    if (!learner || !comment) { alert('Fill learner name and comment.'); return; }
+    const result = document.getElementById('fb-result');
+    result.classList.remove('hidden');
+    result.innerHTML = `<strong style="color:var(--accent)">✅ Feedback submitted for ${escHtml(learner)}</strong><br>
+      <span style="font-size:.82rem;color:var(--muted)">Rating: ${state.starRating}/5 · Thank you for helping learners grow.</span>`;
+    apiFetch(`${API}/trainer/feedback`, { method:'POST', body: JSON.stringify({ learner_name: learner, rating: state.starRating, comment }) }).catch(()=>{});
   }
 };
 
-const currentSkills = {HTML:90,CSS:85,JavaScript:60,React:20,"Node.js":10,SQL:50,Git:65,Testing:25,
-Python:45,FastAPI:15,APIs:30,Statistics:25,Pandas:20,"Data Visualization":30};
-
-let state = {gap:0, practical:0, path:0, project:50, retention:60, verified:false, role:"fullstack"};
-
-function scrollToId(id){document.getElementById(id).scrollIntoView({behavior:"smooth"})}
-
-function renderSkillForm(){
-  const role=document.getElementById("targetRole").value;
-  state.role=role;
-  const required=roleSkills[role];
-  document.getElementById("skillsForm").innerHTML=Object.entries(required).map(([skill,target])=>{
-    const value=currentSkills[skill] ?? 20;
-    return `<div class="skill-row"><label><span>${skill}</span><b>${value}%</b></label>
-    <input type="range" min="0" max="100" value="${value}" data-skill="${skill}"
-      oninput="this.previousElementSibling.querySelector('b').textContent=this.value+'%'"></div>`;
-  }).join("");
-}
-document.getElementById("targetRole").addEventListener("change",renderSkillForm);
-renderSkillForm();
-
-async function analyzeSkills(){
-  const inputs=[...document.querySelectorAll("[data-skill]")];
-  const skills=Object.fromEntries(inputs.map(i=>[i.dataset.skill,Number(i.value)]));
-  const target=roleSkills[state.role];
-  const gaps=Object.entries(target).map(([skill,required])=>({
-    skill,current:skills[skill]||0,required,gap:Math.max(0,required-(skills[skill]||0))
-  }));
-  state.gap=Math.round(gaps.reduce((a,x)=>a+x.gap,0)/gaps.length);
-  state.path=0;
-  document.getElementById("currentScore").textContent=Math.max(0,100-state.gap)+"%";
-  document.getElementById("gapScore").textContent=state.gap+"%";
-  document.getElementById("gapResults").innerHTML=`<div class="panel"><h3>Your biggest gaps</h3><div class="gap-grid">
-    ${gaps.sort((a,b)=>b.gap-a.gap).map(x=>`<div class="gap-item"><b>${x.skill}</b>
-    <div class="bar"><i style="width:${Math.min(100,(x.current/x.required)*100)}%"></i></div>
-    <small>${x.current}% current • ${x.required}% target • ${x.gap}% gap</small></div>`).join("")}</div></div>`;
-  renderPath(gaps);
-  renderOpportunities(gaps);
-  updateEffectiveness();
-  try{await apiFetch(API+"/skill-gap",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({role:state.role,skills})})}catch(e){}
+/* §6 ── SCREEN INITIALIZERS ────────────────────────────────────── */
+function initScreen(screen) {
+  switch(screen) {
+    case 'student':       initStudentDashboard(); break;
+    case 'assessment':    initAssessment(); break;
+    case 'skill-gap':     initSkillGap(); break;
+    case 'learning-path': initLearningPath(); break;
+    case 'project':       initProject(); break;
+    case 'practical':     initPractical(); break;
+    case 'passport':      initPassport(); break;
+    case 'opportunities': initOpportunities(); break;
+    case 'trainer':       initTrainer(); break;
+  }
 }
 
-function renderPath(gaps=[]){
-  const top=(gaps.length?gaps:[{skill:"JavaScript",gap:25},{skill:"React",gap:20},{skill:"Testing",gap:15}])
-    .sort((a,b)=>b.gap-a.gap).slice(0,5);
-  const names=top.map(x=>x.skill);
-  document.getElementById("learningPath").innerHTML=names.map((s,i)=>`
-    <div class="step"><div class="step-number">${i+1}</div>
-      <div><b>${s} mastery</b><p class="muted">Learn core concepts → guided practice → mini project → competency check.</p></div>
-      <button class="secondary" onclick="completeStep(this)">Start</button>
-    </div>`).join("");
-}
-function completeStep(btn){
-  btn.textContent="Completed ✓";btn.disabled=true;state.path=Math.min(100,state.path+20);
-  document.getElementById("pathProgress").textContent=state.path+"%";updateEffectiveness();
+/* §7 ── STUDENT DASHBOARD ──────────────────────────────────────── */
+function initStudentDashboard() {
+  const d = DEMO_STUDENT;
+  document.getElementById('student-name').textContent = d.name.split(' ')[0];
+  document.getElementById('student-role').textContent = d.role;
+  document.getElementById('stat-readiness').textContent    = d.skill_readiness + '%';
+  document.getElementById('stat-gaps').textContent         = d.skill_gaps;
+  document.getElementById('stat-progress').textContent     = d.learning_progress + '%';
+  document.getElementById('stat-effectiveness').textContent = d.learning_effectiveness + '%';
+  renderJourneyChecklist();
 }
 
-function renderProjects(){
-  const projects=[
-    ["Skill Project","Build a responsive role-based dashboard","Frontend + API integration"],
-    ["Practical Project","Create a REST API with authentication","Backend + database"],
-    ["Capstone","Build a complete learning workflow","Full-stack competency"]
+function renderJourneyChecklist() {
+  const items = [
+    { label:'Skill Assessment',       sub:'10 questions · MCQ + Scenarios', screen:'assessment',    status:'done',   statusLabel:'✓ Completed' },
+    { label:'Skill Gap Analysis',     sub:'Current vs Required skills',      screen:'skill-gap',     status:'done',   statusLabel:'✓ Completed' },
+    { label:'Personalized Path',      sub:'5 modules · Gap-prioritized',     screen:'learning-path', status:'active', statusLabel:'Active' },
+    { label:'Learn & Practice',       sub:'Modules + Resources',             screen:'learning-path', status:'pct',    statusLabel:'58%', pct:58 },
+    { label:'Project-Based Learning', sub:'Full Stack Task Manager',         screen:'project',       status:'pct',    statusLabel:'35%', pct:35 },
+    { label:'Competency Verification',sub:'Practical assessment required',   screen:'practical',     status:'locked', statusLabel:'Locked' },
+    { label:'Skill Passport',         sub:'Verified skill record',           screen:'passport',      status:'done',   statusLabel:'Active' },
+    { label:'Opportunities',          sub:'6 matching opportunities',        screen:'opportunities', status:'active', statusLabel:'6 Matches' }
   ];
-  document.getElementById("projects").innerHTML=projects.map((p,i)=>`<div class="card">
-    <span class="badge">PROJECT ${i+1}</span><h3>${p[0]}</h3><p>${p[1]}</p><p class="muted">${p[2]}</p>
-    <button class="secondary" onclick="markProject(this)">Mark progress</button></div>`).join("");
-}
-function markProject(btn){btn.textContent="Project submitted ✓";state.project=Math.min(100,state.project+15);updateEffectiveness()}
 
-async function submitPractical(){
-  const code=document.getElementById("codeAnswer").value.trim();
-  let score=0, message="";
-  // Demo grading: checks for a plausible array-max solution without executing user code.
-  if(/function\s+largest/i.test(code) && /(Math\.max|for\s*\(|reduce\s*\(|sort\s*\()/i.test(code)){
-    score=92;message="Excellent. Your solution contains the expected function and an array-processing strategy.";
-  }else if(code.length>30){
-    score=55;message="Partial credit. The solution needs a clearer array-max implementation.";
-  }else{score=0;message="Submit a JavaScript function named largest(arr).";}
-  state.practical=score;
-  document.getElementById("practicalScore").textContent=score+"%";
-  document.getElementById("assessmentResult").innerHTML=`<span class="badge">${score>=70?"PASSED":"NEEDS PRACTICE"}</span><h3>${score}%</h3><p>${message}</p>`;
-  state.verified=score>=70;
-  document.getElementById("certBtn").disabled=!state.verified;
-  document.getElementById("certTitle").textContent=state.verified?"JavaScript Practical Competency":"Complete the assessment to unlock";
-  document.getElementById("certText").textContent=state.verified?"Verified practical competency achieved. Certificate ID: CC-JS-"+Date.now().toString().slice(-8):"A certificate is issued only when the learner satisfies the competency threshold.";
-  updateEffectiveness();
-  try{await apiFetch(API+"/assessment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({score,skill:"JavaScript"})})}catch(e){}
+  document.getElementById('journey-checklist').innerHTML = items.map((item, i) => `
+    <div class="journey-item ${item.status}" onclick="${item.status !== 'locked' ? `CC.go('${item.screen}')` : ''}">
+      <div class="ji-num">${i+1}</div>
+      <div class="ji-info">
+        <strong>${escHtml(item.label)}</strong>
+        <small>${escHtml(item.sub)}</small>
+      </div>
+      ${item.pct !== undefined ? `<div class="ji-progress"><div class="progress-wrap thin"><div class="progress-fill" style="width:${item.pct}%"></div></div></div>` : '<div></div>'}
+      <div class="ji-status ${item.status}">${item.statusLabel}</div>
+    </div>
+  `).join('');
 }
 
-function downloadCertificate(){
-  const text=`CAPACITY CONNECT
-VERIFIED COMPETENCY CERTIFICATE
-
-This certifies that the learner has demonstrated practical competency in JavaScript.
-
-Assessment Score: ${state.practical}%
-Certificate ID: CC-JS-${Date.now().toString().slice(-8)}
-
-Issued by Capacity Connect`;
-  const blob=new Blob([text],{type:"text/plain"}),url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="capacity-connect-certificate.txt";a.click();URL.revokeObjectURL(url);
+/* §8 ── SKILL ASSESSMENT ───────────────────────────────────────── */
+function initAssessment() {
+  state.currentQuestion = 0;
+  state.assessmentAnswers = new Array(ASSESSMENT_QUESTIONS.length).fill(undefined);
+  document.getElementById('assessment-in-progress').classList.remove('hidden');
+  document.getElementById('assessment-results').classList.add('hidden');
+  renderQuestion(0);
 }
 
-function renderOpportunities(gaps=[]){
-  const score=Math.max(0,100-state.gap);
-  const opportunities=[
-    ["Frontend Developer Intern",["HTML","CSS","JavaScript","React"],Math.min(98,score+8)],
-    ["Full Stack Trainee",["JavaScript","Node.js","SQL","Git"],Math.min(95,score)],
-    ["Web Application Project",["HTML","CSS","JavaScript","Testing"],Math.min(92,score+4)]
-  ];
-  document.getElementById("opportunitiesList").innerHTML=opportunities.map(o=>`<div class="card">
-    <span class="badge">${o[2]}% MATCH</span><h3>${o[0]}</h3><p class="muted">Required: ${o[1].join(" • ")}</p>
-    <button class="secondary">View opportunity</button></div>`).join("");
+function renderQuestion(idx) {
+  const q = ASSESSMENT_QUESTIONS[idx];
+  const total = ASSESSMENT_QUESTIONS.length;
+
+  document.getElementById('q-counter').textContent = `Question ${idx + 1} of ${total}`;
+  document.getElementById('q-bar-fill').style.width = ((idx + 1) / total * 100) + '%';
+  document.getElementById('q-skill-tag').textContent = q.skill;
+  document.getElementById('q-text').textContent = q.question;
+  document.getElementById('q-back-btn').disabled = idx === 0;
+  document.getElementById('q-next-btn').textContent = idx === total - 1 ? 'Submit →' : 'Next →';
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('q-options').innerHTML = q.options.map((opt, i) => `
+    <button class="option-btn ${state.assessmentAnswers[idx] === i ? 'selected' : ''}"
+            onclick="selectOption(${idx}, ${i}, this)">
+      <span class="option-letter">${letters[i]}</span>
+      ${escHtml(opt)}
+    </button>
+  `).join('');
 }
 
-function updateEffectiveness(){
-  const competency=Math.max(0,100-state.gap);
-  const score=Math.round(competency*.25 + state.practical*.35 + state.project*.2 + state.path*.1 + state.retention*.1);
-  document.getElementById("effectivenessScore").textContent=score;
-  document.getElementById("heroScore").textContent=score+"%";
-  document.getElementById("effectivenessBar").style.width=score+"%";
-  document.getElementById("effectivenessBreakdown").innerHTML=[
-    ["Competency",competency],["Practical",state.practical],["Projects",state.project],["Retention",state.retention]
-  ].map(x=>`<div><small>${x[0]}</small><br><b>${x[1]}%</b></div>`).join("");
+function selectOption(qIdx, optIdx, btn) {
+  state.assessmentAnswers[qIdx] = optIdx;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
 }
 
-function renderTrainers(){
-  const trainers=[
-    ["Dr. Ananya Sen","JavaScript & Web Engineering",94,91],
-    ["Rahul Mehta","Backend & APIs",89,88],
-    ["Priya Das","Data & Analytics",92,86]
-  ];
-  document.getElementById("trainerCards").innerHTML=trainers.map(t=>`<div class="card">
-    <span class="badge">TOP TRAINER</span><h3>${t[0]}</h3><p>${t[1]}</p>
-    <div class="trainer-score">${t[2]}/100</div><p class="muted">Quality score</p>
-    <p>Average learner improvement: <b>${t[3]}%</b></p>
-  </div>`).join("");
+function highlightNoSelection() {
+  const opts = document.querySelectorAll('.option-btn');
+  opts.forEach(b => { b.style.borderColor = 'var(--danger)'; setTimeout(() => b.style.borderColor = '', 1200); });
 }
 
-renderPath();renderProjects();renderTrainers();renderOpportunities();updateEffectiveness();
+function finishAssessment() {
+  const scores = calculateAssessmentScores();
+  state.assessmentScores = scores;
+  state.journeyProgress.assessment = true;
+  saveJourney();
+
+  const correct = ASSESSMENT_QUESTIONS.filter((q, i) => state.assessmentAnswers[i] === q.correct).length;
+  document.getElementById('result-correct').textContent = correct + '/10';
+
+  const skillKeys = [...new Set(ASSESSMENT_QUESTIONS.map(q => q.skill))];
+  document.getElementById('skill-score-grid').innerHTML = skillKeys.map(skill => {
+    const s = scores[skill] || 0;
+    const color = s >= 80 ? 'green' : s >= 60 ? 'yellow' : 'red';
+    return `<div class="skill-score-row">
+      <div class="skill-score-name">${skill}</div>
+      <div class="skill-score-bar"><div class="progress-wrap"><div class="progress-fill ${color}" style="width:${s}%"></div></div></div>
+      <div class="skill-score-pct ${s>=80?'accent':''}">${Math.round(s)}%</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('assessment-in-progress').classList.add('hidden');
+  document.getElementById('assessment-results').classList.remove('hidden');
+
+  // Push to API silently
+  apiFetch(`${API}/assessment/score`, { method:'POST', body: JSON.stringify({ answers: state.assessmentAnswers }) }).catch(()=>{});
+}
+
+function calculateAssessmentScores() {
+  const skillMap = {};
+  ASSESSMENT_QUESTIONS.forEach((q, i) => {
+    if (!skillMap[q.skill]) skillMap[q.skill] = { correct:0, total:0 };
+    skillMap[q.skill].total++;
+    if (state.assessmentAnswers[i] === q.correct) skillMap[q.skill].correct++;
+  });
+  const scores = {};
+  // Blend with demo base scores for realistic presentation
+  const base = DEMO_STUDENT.skills;
+  Object.entries(skillMap).forEach(([skill, { correct, total }]) => {
+    const assessPct = (correct / total) * 100;
+    const basePct   = base[skill] || 50;
+    scores[skill] = Math.round(basePct * 0.6 + assessPct * 0.4);
+  });
+  return scores;
+}
+
+/* §9 ── SKILL GAP ANALYZER ─────────────────────────────────────── */
+function initSkillGap() {
+  const currentSkills = Object.keys(state.assessmentScores).length
+    ? { ...DEMO_STUDENT.skills, ...state.assessmentScores }
+    : DEMO_STUDENT.skills;
+
+  const req = ROLE_REQUIREMENTS[DEMO_STUDENT.role];
+  const gaps = Object.entries(req).map(([skill, required]) => {
+    const current = currentSkills[skill] || 0;
+    const gap = Math.max(0, required - current);
+    let status = 'mastered', color = 'green';
+    if (gap > 25)      { status = 'critical';    color = 'red'; }
+    else if (gap > 5)  { status = 'needs_work';  color = 'yellow'; }
+    return { skill, current, required, gap, status, color };
+  }).sort((a,b) => b.gap - a.gap);
+
+  state.skillGaps = gaps;
+  state.journeyProgress.gap_analysis = true;
+  saveJourney();
+
+  const biggest = gaps.find(g => g.gap > 0);
+  document.getElementById('gap-insight-text').innerHTML = biggest
+    ? `Your biggest skill gap is <strong>${biggest.skill}</strong> — you are at <strong>${biggest.current}%</strong> and your target role requires <strong>${biggest.required}%</strong> (gap: <strong style="color:var(--danger)">${biggest.gap} points</strong>).<br><span style="color:var(--muted2)">Capacity Connect will prioritize ${biggest.skill} in your personalized learning path.</span>`
+    : 'All skills meet target requirements. Excellent!';
+
+  document.getElementById('gap-grid').innerHTML = gaps.map(g => `
+    <div class="gap-item">
+      <div class="gap-item-header">
+        <div class="gap-item-skill">${escHtml(g.skill)}</div>
+        <div class="gap-item-status" style="color:${g.color==='green'?'var(--green)':g.color==='yellow'?'var(--warn)':'var(--danger)'}">
+          ${g.status === 'mastered' ? '✓ Mastered' : g.status === 'critical' ? '🔴 Critical' : '🟡 Needs Work'}
+        </div>
+      </div>
+      <div class="gap-bar-wrap">
+        <div class="gap-bar-track">
+          <div class="gap-bar-current ${g.color}" style="width:${Math.min(100, (g.current/g.required)*100)}%"></div>
+          <div class="gap-bar-target-line" style="left:${g.required}%"></div>
+        </div>
+      </div>
+      <div class="gap-item-scores">
+        <span>Current: <strong>${g.current}%</strong></span>
+        <span>Required: <strong>${g.required}%</strong></span>
+        <span>Gap: <strong style="color:${g.gap>0?'var(--danger)':'var(--accent)'}">${g.gap > 0 ? '-'+g.gap : '✓ 0'}</strong></span>
+      </div>
+    </div>
+  `).join('');
+
+  // Push to API
+  apiFetch(`${API}/skill-gap/analyze`, { method:'POST', body: JSON.stringify({ role: DEMO_STUDENT.role, current_skills: currentSkills }) }).catch(()=>{});
+}
+
+/* §10 ── LEARNING PATH ─────────────────────────────────────────── */
+function initLearningPath() {
+  const gaps = state.skillGaps.length ? state.skillGaps : Object.entries(ROLE_REQUIREMENTS[DEMO_STUDENT.role]).map(([skill,req]) => ({ skill, gap: Math.max(0, req - (DEMO_STUDENT.skills[skill]||0)) }));
+  const gapBySkill = Object.fromEntries(gaps.map(g => [g.skill, g.gap]));
+
+  // Sort modules by gap size
+  const sortedModules = [...LEARNING_MODULES].sort((a, b) => (gapBySkill[b.skill]||0) - (gapBySkill[a.skill]||0));
+
+  const completed = Object.values(state.moduleProgress).filter(Boolean).length;
+  const pct = Math.round((completed / sortedModules.length) * 100);
+  document.getElementById('path-pct').textContent = pct + '%';
+  document.getElementById('path-summary-title').textContent = completed === 0
+    ? 'Start with your biggest gap'
+    : completed === sortedModules.length ? 'All modules complete!' : `${completed} of ${sortedModules.length} modules done`;
+
+  document.getElementById('modules-list').innerHTML = sortedModules.map((m, idx) => {
+    const gap = gapBySkill[m.skill] || 0;
+    const done = !!state.moduleProgress[m.id];
+    const gapBadge = gap > 0 ? `<span class="badge ${gap>25?'badge-red':gap>5?'badge-orange':'badge-green'}" style="margin-left:8px">Gap: ${gap}</span>` : `<span class="badge badge-accent" style="margin-left:8px">✓ Mastered</span>`;
+    return `
+    <div class="module-card ${done ? 'completed' : ''}" id="mc-${m.id}">
+      <div class="module-card-header" onclick="toggleModule('${m.id}')">
+        <div class="module-num">${done ? '✓' : (idx+1)}</div>
+        <div class="module-info">
+          <h4>${escHtml(m.title)} ${gapBadge}</h4>
+          <div class="module-meta">
+            <span>${m.difficulty}</span>
+            <span>~${m.duration_hrs}h</span>
+            <span>${m.skill}</span>
+          </div>
+        </div>
+        <button class="btn ${done?'btn-ghost btn-sm':'btn-secondary btn-sm'}">${done ? '✓ Completed' : 'Expand'}</button>
+      </div>
+      <div class="module-body hidden" id="mb-${m.id}">
+        <div class="module-body-inner">
+          <p style="font-size:.88rem;color:var(--muted2);margin-bottom:16px">${escHtml(m.description)}</p>
+          <div class="module-objectives">
+            <h5>Learning Objectives</h5>
+            <ul>${m.objectives.map(o => `<li>${escHtml(o)}</li>`).join('')}</ul>
+          </div>
+          <div class="module-resources">
+            <h5>Resources</h5>
+            ${m.resources.map(r => `<a href="${r.url}" target="_blank" rel="noopener" class="resource-link">↗ ${escHtml(r.title)}</a>`).join('')}
+          </div>
+          <button class="btn ${done?'btn-ghost':'btn-primary'} btn-sm" onclick="completeModule('${m.id}', this)" ${done?'disabled':''}>
+            ${done ? '✓ Module Complete' : '✓ Mark as Complete'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleModule(id) {
+  const body = document.getElementById('mb-' + id);
+  if (body) body.classList.toggle('hidden');
+}
+
+function completeModule(id, btn) {
+  state.moduleProgress[id] = true;
+  state.journeyProgress.learning_path = true;
+  saveJourney();
+  btn.textContent = '✓ Module Complete';
+  btn.disabled = true;
+  btn.className = 'btn btn-ghost btn-sm';
+  const card = document.getElementById('mc-' + id);
+  if (card) { card.classList.add('completed'); card.querySelector('.module-num').textContent = '✓'; }
+  // Update progress summary
+  const done = Object.values(state.moduleProgress).filter(Boolean).length;
+  const pct = Math.round((done / LEARNING_MODULES.length) * 100);
+  document.getElementById('path-pct').textContent = pct + '%';
+  document.getElementById('path-summary-title').textContent = `${done} of ${LEARNING_MODULES.length} modules done`;
+  // Save to API
+  apiFetch(`${API}/learning/progress`, { method:'POST', body: JSON.stringify({ module_id: id, score: 100 }) }).catch(()=>{});
+}
+
+/* §11 ── PROJECT ────────────────────────────────────────────────── */
+const PROJECT_TASKS = [
+  { id:'t1', label:'Create responsive HTML/CSS frontend with task list UI' },
+  { id:'t2', label:'Build REST API with FastAPI (GET, POST, PUT, DELETE tasks)' },
+  { id:'t3', label:'Connect PostgreSQL database via Supabase' },
+  { id:'t4', label:'Implement full CRUD for tasks' },
+  { id:'t5', label:'Add JWT authentication for protected routes' }
+];
+
+const SKILL_TAGS = ['HTML','CSS','JavaScript','Python','FastAPI','SQL','REST API','Authentication'];
+const EVAL_CRITERIA = ['Working CRUD endpoints (all 4 methods)','JWT authentication implemented','Database connected and persisting data','Responsive UI on mobile and desktop','Clean, readable code structure'];
+
+function initProject() {
+  // Skills
+  document.getElementById('project-skills').innerHTML = SKILL_TAGS.map(s => `<span class="badge badge-accent">${s}</span>`).join('');
+  // Tasks
+  document.getElementById('task-list').innerHTML = PROJECT_TASKS.map(t => `
+    <div class="task-item ${state.projectTasks[t.id] ? 'done' : ''}" id="ti-${t.id}" onclick="toggleTask('${t.id}')">
+      <div class="task-check">${state.projectTasks[t.id] ? '✓' : ''}</div>
+      <span>${escHtml(t.label)}</span>
+    </div>
+  `).join('');
+  // Eval criteria
+  document.getElementById('eval-criteria-list').innerHTML = EVAL_CRITERIA.map(c => `<li>${escHtml(c)}</li>`).join('');
+  updateProjectProgress();
+}
+
+function toggleTask(id) {
+  state.projectTasks[id] = !state.projectTasks[id];
+  const item = document.getElementById('ti-' + id);
+  if (item) {
+    item.classList.toggle('done', state.projectTasks[id]);
+    item.querySelector('.task-check').textContent = state.projectTasks[id] ? '✓' : '';
+  }
+  updateProjectProgress();
+}
+
+function updateProjectProgress() {
+  const done = Object.values(state.projectTasks).filter(Boolean).length;
+  const total = PROJECT_TASKS.length;
+  const pct = Math.round((done / total) * 100);
+  const bar = document.getElementById('proj-progress-bar');
+  const txt = document.getElementById('proj-progress-text');
+  if (bar) bar.style.width = pct + '%';
+  if (txt) txt.textContent = `${done} of ${total} tasks completed · ${pct}%`;
+}
+
+/* §12 ── PRACTICAL ASSESSMENT ──────────────────────────────────── */
+function initPractical() {
+  state.practicalAnswers = {};
+  document.getElementById('practical-in-progress').classList.remove('hidden');
+  document.getElementById('practical-result').classList.add('hidden');
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('practical-questions').innerHTML = PRACTICAL_QUESTIONS.map((q, qi) => `
+    <div class="practical-question-card">
+      <div class="badge badge-blue mb-16">Q${qi+1} · ${q.skill}</div>
+      <div class="scenario-box">
+        <strong>Scenario</strong>
+        ${escHtml(q.scenario)}
+      </div>
+      <div class="question-text" style="font-size:1rem">${escHtml(q.question)}</div>
+      <div class="options-list" style="margin-top:16px">
+        ${q.options.map((opt, i) => `
+          <button class="option-btn" onclick="selectPractical('${q.id}', ${i}, this)">
+            <span class="option-letter">${letters[i]}</span>
+            ${escHtml(opt)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectPractical(qId, optIdx, btn) {
+  state.practicalAnswers[qId] = optIdx;
+  // Deselect siblings in same question
+  btn.closest('.practical-question-card').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+/* §13 ── SKILL PASSPORT ────────────────────────────────────────── */
+const PASSPORT_DATA = {
+  verified_skills: [
+    { skill:'JavaScript', score:82, verified:true,  trend:'+10' },
+    { skill:'Python',     score:76, verified:true,  trend:'+11' },
+    { skill:'SQL',        score:68, verified:false, trend:'+20' },
+    { skill:'REST API',   score:78, verified:true,  trend:'+38' },
+    { skill:'Git',        score:84, verified:true,  trend:'+9'  },
+    { skill:'FastAPI',    score:72, verified:false, trend:'+27' },
+    { skill:'HTML',       score:90, verified:true,  trend:'+0'  },
+    { skill:'CSS',        score:85, verified:true,  trend:'+0'  }
+  ],
+  projects:       ['Full Stack Task Manager (85/100)'],
+  certifications: ['Backend Development Certificate · CC-DEMO0001'],
+  competencies:   ['REST API Development','Backend Development']
+};
+
+function initPassport() {
+  state.journeyProgress.passport = true;
+  saveJourney();
+
+  document.getElementById('passport-name').textContent = DEMO_STUDENT.name;
+  document.getElementById('passport-role').textContent = DEMO_STUDENT.role;
+
+  document.getElementById('passport-skills').innerHTML = PASSPORT_DATA.verified_skills.map(s => `
+    <div class="passport-skill-item ${s.verified ? 'verified' : ''}">
+      <div class="passport-skill-name">${escHtml(s.skill)}</div>
+      <div class="passport-skill-score ${s.verified ? 'verified' : ''}">${s.score}%</div>
+      <div class="passport-skill-check">${s.verified ? '<span class="badge badge-green" style="font-size:.6rem;padding:2px 6px">✓</span>' : ''}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('passport-projects').innerHTML = PASSPORT_DATA.projects.map(p => `<div class="passport-tag">✓ ${escHtml(p)}</div>`).join('');
+  document.getElementById('passport-certs').innerHTML = PASSPORT_DATA.certifications.map(c => `<div class="passport-tag">🏅 ${escHtml(c)}</div>`).join('');
+  document.getElementById('passport-competencies').innerHTML = PASSPORT_DATA.competencies.map(c => `<div class="passport-tag">⭐ ${escHtml(c)}</div>`).join('');
+
+  // Fetch from API too
+  apiFetch(`${API}/skill-passport?demo=true`).catch(()=>{});
+}
+
+/* §14 ── OPPORTUNITIES ─────────────────────────────────────────── */
+const EFFECTIVENESS_DATA = [
+  { skill:'REST API',   before:40, after:78, improvement:38 },
+  { skill:'SQL',        before:48, after:68, improvement:20 },
+  { skill:'FastAPI',    before:45, after:72, improvement:27 },
+  { skill:'JavaScript', before:72, after:82, improvement:10 },
+  { skill:'Python',     before:65, after:76, improvement:11 }
+];
+
+function initOpportunities() {
+  const currentSkills = Object.keys(state.assessmentScores).length
+    ? { ...DEMO_STUDENT.skills, ...state.assessmentScores }
+    : DEMO_STUDENT.skills;
+
+  const matches = OPPORTUNITIES_DATA.map(opp => {
+    const metSkills     = opp.required_skills.filter(r => (currentSkills[r.skill]||0) >= r.level).map(r => r.skill);
+    const missingSkills = opp.required_skills.filter(r => (currentSkills[r.skill]||0) < r.level);
+    // Partial credit
+    let matchScore = 0;
+    opp.required_skills.forEach(r => {
+      const cur = currentSkills[r.skill] || 0;
+      matchScore += Math.min(1, cur / r.level);
+    });
+    const matchPct = Math.round((matchScore / opp.required_skills.length) * 100);
+    const nextMissing = missingSkills.sort((a,b) => b.level - a.level)[0];
+    return { ...opp, matchPct, metSkills, missingSkills: missingSkills.map(r=>r.skill), nextSkillTip: nextMissing ? `Learn ${nextMissing.skill} to increase your match to ${Math.min(99,matchPct+10)}%` : null };
+  }).sort((a,b) => b.matchPct - a.matchPct);
+
+  document.getElementById('opportunities-grid').innerHTML = matches.map(m => `
+    <div class="opp-card ${m.matchPct >= 80 ? 'strong-match' : ''}">
+      <div class="opp-match-pct ${m.matchPct>=80?'strong':m.matchPct>=60?'medium':''}">${m.matchPct}%</div>
+      <div class="opp-match-bar"><div class="opp-match-fill" style="width:${m.matchPct}%"></div></div>
+      <div class="badge badge-blue" style="font-size:.64rem">${m.type.toUpperCase()}</div>
+      <div class="opp-title">${escHtml(m.title)}</div>
+      <div class="opp-company">${escHtml(m.company)}</div>
+      <div class="opp-skills">
+        ${m.metSkills.map(s=>`<span class="opp-skill-tag met">✓ ${s}</span>`).join('')}
+        ${m.missingSkills.map(s=>`<span class="opp-skill-tag missing">✗ ${s}</span>`).join('')}
+      </div>
+      ${m.nextSkillTip ? `<div class="opp-tip">💡 ${escHtml(m.nextSkillTip)}</div>` : ''}
+    </div>
+  `).join('');
+
+  // Effectiveness
+  document.getElementById('eff-score').textContent = '84';
+  document.getElementById('eff-improvements').innerHTML = EFFECTIVENESS_DATA.map(e => `
+    <div class="eff-row">
+      <div class="eff-skill">${e.skill}</div>
+      <div class="eff-before">${e.before}</div>
+      <div class="eff-bar">
+        <div class="progress-wrap thin">
+          <div class="progress-fill" style="width:${e.after}%"></div>
+        </div>
+      </div>
+      <div class="eff-after">${e.after}</div>
+      <div class="eff-gain">+${e.improvement}</div>
+    </div>
+  `).join('');
+
+  apiFetch(`${API}/opportunities/match`, { method:'POST', body: JSON.stringify({ skills: currentSkills }) }).catch(()=>{});
+}
+
+/* §15 ── TRAINER DASHBOARD ─────────────────────────────────────── */
+function initTrainer() {
+  renderLearnerTable();
+  renderProjectReviews();
+  wireStars();
+}
+
+function renderLearnerTable() {
+  const table = document.getElementById('learner-table');
+  if (!table) return;
+  table.innerHTML = `
+    <thead><tr>
+      <th>Learner</th><th>Target Role</th><th>Progress</th>
+      <th>Skill Readiness</th><th>Last Active</th>
+    </tr></thead>
+    <tbody>
+      ${DEMO_TRAINER.learners.map(l => `
+        <tr>
+          <td><strong>${escHtml(l.name)}</strong></td>
+          <td><span class="badge badge-blue">${escHtml(l.role)}</span></td>
+          <td>
+            <div class="progress-wrap" style="width:120px">
+              <div class="progress-fill" style="width:${l.progress}%"></div>
+            </div>
+            <small style="font-size:.75rem;color:var(--muted)">${l.progress}%</small>
+          </td>
+          <td><strong style="color:${l.skill_readiness>=80?'var(--accent)':'var(--warn)'}">${l.skill_readiness}%</strong></td>
+          <td><small class="muted">${escHtml(l.last_active)}</small></td>
+        </tr>
+      `).join('')}
+    </tbody>`;
+}
+
+function renderProjectReviews() {
+  const list = document.getElementById('project-review-list');
+  if (!list) return;
+  list.innerHTML = DEMO_TRAINER.projects_pending.map(p => `
+    <div class="project-review-card">
+      <div class="pr-info">
+        <h5>${escHtml(p.student)} — ${escHtml(p.project)}</h5>
+        <small>Submitted ${escHtml(p.submitted)}</small>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="reviewProject(this,'approved')">Approve</button>
+        <button class="btn btn-secondary btn-sm" onclick="reviewProject(this,'feedback')">Give Feedback</button>
+      </div>
+    </div>
+  `).join('') || '<p class="muted">No projects pending review.</p>';
+}
+
+function reviewProject(btn, action) {
+  const card = btn.closest('.project-review-card');
+  if (action === 'approved') {
+    card.style.opacity = '0.5';
+    btn.textContent = '✓ Approved';
+    btn.disabled = true;
+  } else {
+    CC.trainerTab('feedback');
+  }
+}
+
+function wireStars() {
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = parseInt(btn.dataset.star);
+      state.starRating = val;
+      document.querySelectorAll('.star-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.star) <= val);
+      });
+    });
+  });
+}
+
+/* §16 ── JOURNEY BAR ───────────────────────────────────────────── */
+function updateJourneyBar(activeStep) {
+  for (let i = 1; i <= 7; i++) {
+    const el = document.getElementById('js-' + i);
+    if (!el) continue;
+    el.classList.remove('active','done');
+    if (i === activeStep) el.classList.add('active');
+    else if (i < activeStep) el.classList.add('done');
+  }
+}
+
+/* §17 ── NAV HELPERS ───────────────────────────────────────────── */
+function updateNavButtons() {
+  const s = state.demoRole;
+  const isStudent = s === 'student';
+  const isTrainer = s === 'trainer';
+
+  const navIds = ['nav-student','nav-assess','nav-gap','nav-path','nav-passport','nav-opps','nav-trainer'];
+  navIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+
+  if (isStudent) {
+    ['nav-student','nav-assess','nav-gap','nav-path','nav-passport','nav-opps'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    });
+  }
+  if (isTrainer) {
+    const el = document.getElementById('nav-trainer');
+    if (el) el.classList.remove('hidden');
+  }
+}
+
+/* §18 ── AUTH (real Supabase, preserved) ───────────────────────── */
+function showAuthMsg(msg, type = 'error') {
+  const el = document.getElementById('auth-notice');
+  if (el) { el.textContent = msg; el.className = 'auth-notice ' + (type === 'success' ? 'success' : ''); }
+}
+
+function initSupabase() {
+  if (window.supabase && CFG.supabaseUrl && !CFG.supabaseUrl.includes('YOUR_')) {
+    state.supabaseClient = window.supabase.createClient(CFG.supabaseUrl, CFG.supabasePublishableKey);
+    state.supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (!session && state.demoRole) return; // demo mode — ignore
+      if (session) CC.go('student');
+    });
+  }
+}
+
+async function apiFetch(path, opts = {}) {
+  const headers = new Headers(opts.headers || { 'Content-Type': 'application/json' });
+  if (state.supabaseClient) {
+    const { data } = await state.supabaseClient.auth.getSession();
+    if (data?.session) headers.set('Authorization', `Bearer ${data.session.access_token}`);
+  }
+  return fetch(path, { ...opts, headers });
+}
+
+/* §19 ── BANDWIDTH TOGGLE ──────────────────────────────────────── */
+function wireBandwidth() {
+  const enabled = localStorage.getItem(BW_KEY) === 'true';
+  document.body.classList.toggle('low-bandwidth', enabled);
+
+  const allToggles = [document.getElementById('bw-toggle'), document.getElementById('bw-toggle-landing')];
+  allToggles.forEach(t => { if (t) t.checked = enabled; });
+
+  allToggles.forEach(t => {
+    if (!t) return;
+    t.addEventListener('change', () => {
+      const on = t.checked;
+      allToggles.forEach(other => { if (other) other.checked = on; });
+      document.body.classList.toggle('low-bandwidth', on);
+      localStorage.setItem(BW_KEY, String(on));
+    });
+  });
+}
+
+/* §20 ── UTILS ─────────────────────────────────────────────────── */
+function escHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* §21 ── ROLE TABS (login) ─────────────────────────────────────── */
+function wireRoleTabs() {
+  document.querySelectorAll('.role-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+}
+
+/* §22 ── RESTORE DEMO SESSION ──────────────────────────────────── */
+function restoreSession() {
+  const saved = localStorage.getItem(DEMO_KEY);
+  if (saved === 'student' || saved === 'trainer') {
+    state.demoRole = saved;
+    document.getElementById('demo-badge').classList.remove('hidden');
+    updateNavButtons();
+    CC.go(saved === 'trainer' ? 'trainer' : 'landing');
+  } else {
+    CC.go('landing');
+  }
+}
+
+/* §23 ── INIT ──────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  initSupabase();
+  wireBandwidth();
+  wireRoleTabs();
+  restoreSession();
+});

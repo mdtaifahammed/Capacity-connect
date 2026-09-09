@@ -258,3 +258,15 @@ for select to authenticated using (public.is_admin());
 
 -- Admin role assignment should be performed with the SQL Editor, not from the browser:
 -- update public.profiles set role = 'admin' where email = 'admin@example.com';
+
+-- =============================================================================
+-- MVP: Trainer Quality Seed Data
+-- Demo trainer records for presentation mode.
+-- =============================================================================
+insert into public.trainer_quality (name, competency, learner_improvement, completion_rate, feedback_score)
+values
+  ('Dr. Priya Sharma', 'Python, FastAPI, REST API, Backend Development', 90, 85, 89),
+  ('Rahul Mehta',      'JavaScript, React, Frontend Engineering',        84, 88, 86),
+  ('Dr. Ananya Sen',   'Data Science, SQL, Python Analytics',            88, 82, 91)
+on conflict do nothing;
+
