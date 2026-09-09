@@ -700,11 +700,33 @@
 
     <!-- Learners -->
     <div class="trainer-view hidden" id="tv-learners">
-      <span class="eyebrow">LEARNER PROGRESS</span>
-      <h2 class="mb-24">My Learners</h2>
-      <div class="panel">
-        <table class="learner-table" id="learner-table"></table>
+      <div class="flex justify-between align-center mb-24 flex-wrap gap-12">
+        <div>
+          <span class="eyebrow">LEARNER PROGRESS</span>
+          <h2>My Learners</h2>
+        </div>
       </div>
+      <div class="learner-filter-bar">
+        <input type="text" id="learner-search" placeholder="Search learners by name or role..." oninput="renderLearners()">
+        <select id="learner-status-filter" onchange="renderLearners()">
+          <option value="All">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Needs Attention">Needs Attention</option>
+        </select>
+        <select id="learner-role-filter" onchange="renderLearners()">
+          <option value="All">All Target Roles</option>
+          <option value="Full Stack Developer">Full Stack Developer</option>
+          <option value="Backend Developer">Backend Developer</option>
+          <option value="Frontend Developer">Frontend Developer</option>
+          <option value="Data Analyst">Data Analyst</option>
+        </select>
+        <select id="learner-sort" onchange="renderLearners()">
+          <option value="readiness">Sort by Readiness</option>
+          <option value="progress">Sort by Progress</option>
+          <option value="name">Sort by Name</option>
+        </select>
+      </div>
+      <div id="learner-cards-container" class="learner-cards-grid"></div>
     </div>
 
     <!-- Projects -->
@@ -717,36 +739,56 @@
     <!-- Feedback -->
     <div class="trainer-view hidden" id="tv-feedback">
       <span class="eyebrow">LEARNER FEEDBACK</span>
-      <h2 class="mb-24">Submit Feedback</h2>
-      <div class="panel" style="max-width:560px">
-        <div class="form-group">
-          <label class="form-label">Learner Name</label>
-          <input class="form-input" id="fb-learner" type="text" placeholder="e.g. Alex Johnson">
+      <h2 class="mb-24">Feedback & Reviews</h2>
+      
+      <div class="feedback-summary-panel">
+        <div class="rating-big-box">
+          <div class="rating-big-number">4.5</div>
+          <div class="rating-stars-gold">★★★★★</div>
+          <small style="color:var(--muted)">Average Rating</small>
         </div>
-        <div class="form-group">
-          <label class="form-label">Rating</label>
-          <div class="star-rating" id="star-rating">
-            <button class="star-btn active" data-star="1">★</button>
-            <button class="star-btn active" data-star="2">★</button>
-            <button class="star-btn active" data-star="3">★</button>
-            <button class="star-btn active" data-star="4">★</button>
-            <button class="star-btn" data-star="5">★</button>
+        <div>
+          <h4 class="mb-12">Rating Distribution</h4>
+          <div class="rating-dist-bar">
+            <span>5 ★</span>
+            <div class="rating-dist-track"><div class="rating-dist-fill" style="width:75%"></div></div>
+            <span>75%</span>
+          </div>
+          <div class="rating-dist-bar">
+            <span>4 ★</span>
+            <div class="rating-dist-track"><div class="rating-dist-fill" style="width:25%"></div></div>
+            <span>25%</span>
+          </div>
+          <div class="rating-dist-bar">
+            <span>3 ★</span>
+            <div class="rating-dist-track"><div class="rating-dist-fill" style="width:0%"></div></div>
+            <span>0%</span>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Comment</label>
-          <textarea class="form-textarea" id="fb-comment" placeholder="Describe the learner's progress, strengths, and areas to improve..."></textarea>
+        <div class="panel" style="padding:16px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--accent)">94%</div>
+          <small style="color:var(--muted2)">Positive Feedback</small>
+          <div style="font-size:.78rem;color:var(--muted);margin-top:8px">Based on 18 learner reviews</div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="CC.submitFeedback()">Submit Feedback</button>
-        <div id="fb-result" class="hidden submission-result mt-16"></div>
       </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="feedback-filter-btn active" onclick="filterTrainerFeedback('All', this)">All</button>
+        <button class="feedback-filter-btn" onclick="filterTrainerFeedback('5 Stars', this)">5 Stars</button>
+        <button class="feedback-filter-btn" onclick="filterTrainerFeedback('4 Stars', this)">4 Stars</button>
+        <button class="feedback-filter-btn" onclick="filterTrainerFeedback('3 Stars', this)">3 Stars</button>
+        <button class="feedback-filter-btn" onclick="filterTrainerFeedback('Needs Attention', this)">Needs Attention</button>
+      </div>
+
+      <div id="feedback-list-container"></div>
     </div>
 
     <!-- Quality -->
     <div class="trainer-view hidden" id="tv-quality">
       <span class="eyebrow">TRAINER QUALITY SCORE</span>
       <h2 class="mb-24">Your Impact as a Trainer</h2>
-      <div class="quality-score-main">
+      
+      <div class="quality-score-main mb-24">
         <div class="quality-ring">
           <div class="quality-score-inner">
             <div class="big-q">88</div>
@@ -780,42 +822,71 @@
           </div>
         </div>
       </div>
-      <div class="panel" style="max-width:440px">
-        <p style="font-size:.85rem;color:var(--muted2)">
-          <strong style="color:var(--accent)">Quality = Outcome.</strong> Your score is based on learner improvement, not just ratings. A trainer who helps students go from 40 → 78 in REST API outscores one with a 5-star review but no skill gains.
-        </p>
+
+      <div class="trainer-stats-grid mb-24">
+        <div class="stat-card"><small>Learner Satisfaction</small><strong style="color:var(--accent)">92%</strong></div>
+        <div class="stat-card"><small>Avg Learner Improvement</small><strong style="color:var(--green)">+27%</strong></div>
+        <div class="stat-card"><small>Project Review Quality</small><strong>86%</strong></div>
+        <div class="stat-card"><small>Course Completion</small><strong>81%</strong></div>
+        <div class="stat-card"><small>Response Rate</small><strong style="color:var(--accent)">94%</strong></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="mb-24">
+        <div class="panel">
+          <h4 class="mb-12" style="color:var(--green)">✓ Key Strengths</h4>
+          <ul style="padding-left:18px;font-size:.85rem;color:var(--muted2);display:grid;gap:8px">
+            <li>Strong learner satisfaction (92%)</li>
+            <li>Excellent backend & API expertise</li>
+            <li>High responsiveness to learner inquiries (94%)</li>
+            <li>Effective, actionable project feedback</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h4 class="mb-12" style="color:var(--warn)">💡 Areas to Improve</h4>
+          <ul style="padding-left:18px;font-size:.85rem;color:var(--muted2);display:grid;gap:8px">
+            <li>Add more practical hands-on exercises</li>
+            <li>Increase FastAPI real-world learning resources</li>
+            <li>Provide advanced multi-service project examples</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quality-trend-box">
+        <h4 class="mb-8">Quality Score Trend (Monthly)</h4>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">Track your impact progression over the last 5 months.</p>
+        <div class="trend-bars-container">
+          <div class="trend-bar-column">
+            <div class="trend-bar-fill" style="height:81%">81</div>
+            <span class="trend-month-label">April</span>
+          </div>
+          <div class="trend-bar-column">
+            <div class="trend-bar-fill" style="height:84%">84</div>
+            <span class="trend-month-label">May</span>
+          </div>
+          <div class="trend-bar-column">
+            <div class="trend-bar-fill" style="height:85%">85</div>
+            <span class="trend-month-label">June</span>
+          </div>
+          <div class="trend-bar-column">
+            <div class="trend-bar-fill" style="height:87%">87</div>
+            <span class="trend-month-label">July</span>
+          </div>
+          <div class="trend-bar-column">
+            <div class="trend-bar-fill" style="height:88%;background:var(--accent)">88</div>
+            <span class="trend-month-label">August</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Courses -->
     <div class="trainer-view hidden" id="tv-courses">
-      <span class="eyebrow">COURSE MANAGEMENT</span>
-      <h2 class="mb-24">My Courses</h2>
-      <div class="panel mb-24" style="max-width:600px">
-        <h4 class="mb-16">Create New Course</h4>
-        <div class="form-group">
-          <label class="form-label">Course Title</label>
-          <input class="form-input" id="course-title" type="text" placeholder="e.g. Python Backend Masterclass">
+      <div class="flex justify-between align-center mb-24 flex-wrap gap-12">
+        <div>
+          <span class="eyebrow">COURSE MANAGEMENT</span>
+          <h2>My Courses</h2>
         </div>
-        <div class="form-group">
-          <label class="form-label">Description</label>
-          <textarea class="form-textarea" id="course-desc" placeholder="Describe what learners will gain..."></textarea>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="form-group">
-            <label class="form-label">Difficulty</label>
-            <select class="form-input" id="course-difficulty">
-              <option>Beginner</option>
-              <option>Intermediate</option>
-              <option>Advanced</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Duration (hours)</label>
-            <input class="form-input" id="course-duration" type="number" value="4" min="1">
-          </div>
-        </div>
-        <button class="btn btn-primary btn-full" onclick="CC.createCourse()">Create Course</button>
+        <button class="btn btn-primary" onclick="openCreateCourseModal()">+ Create New Course</button>
       </div>
       <div id="trainer-course-list"></div>
     </div>
@@ -823,10 +894,25 @@
     <!-- Competency Mapping -->
     <div class="trainer-view hidden" id="tv-competency">
       <span class="eyebrow">TRAINER-LEARNER COMPETENCY MAPPING</span>
-      <h2 class="mb-24">Your Impact Areas</h2>
+      <h2 class="mb-24">Competency Gap Matching</h2>
+      
       <div class="panel mb-24">
-        <p style="font-size:.88rem;color:var(--muted2)">This view shows which of your learners have skill gaps that match your expertise. Capacity Connect recommends you as their <strong>best trainer match</strong> based on overlap between your teaching strengths and their competency gaps.</p>
+        <div class="flex justify-between align-center flex-wrap gap-12">
+          <div>
+            <h4 class="mb-4">Dr. Priya Sharma — Trainer Expertise Matrix</h4>
+            <p style="font-size:.85rem;color:var(--muted2);margin:0">Learners' skill gaps are automatically matched against your core teaching competencies.</p>
+          </div>
+        </div>
+        <div class="flex gap-8 flex-wrap mt-16">
+          <span class="badge badge-green" style="font-size:.8rem">Python: 92%</span>
+          <span class="badge badge-green" style="font-size:.8rem">FastAPI: 95%</span>
+          <span class="badge badge-green" style="font-size:.8rem">REST API: 94%</span>
+          <span class="badge badge-green" style="font-size:.8rem">Backend Dev: 91%</span>
+          <span class="badge badge-green" style="font-size:.8rem">Authentication: 87%</span>
+          <span class="badge badge-blue" style="font-size:.8rem">SQL: 76%</span>
+        </div>
       </div>
+
       <div id="competency-match-list"></div>
     </div>
   </div>
@@ -917,6 +1003,66 @@
     </div>
   </div>
 </section>
+
+<!-- ======================================================
+     TRAINER MODALS
+     ====================================================== -->
+
+<!-- 1. Learner Profile Modal -->
+<div id="modal-learner-profile" class="modal-overlay hidden">
+  <div class="modal-box modal-box-lg">
+    <button class="modal-close" onclick="closeModal('modal-learner-profile')">✕</button>
+    <div id="learner-profile-content"></div>
+  </div>
+</div>
+
+<!-- 2. Project Review Modal -->
+<div id="modal-project-review" class="modal-overlay hidden">
+  <div class="modal-box modal-box-lg">
+    <button class="modal-close" onclick="closeModal('modal-project-review')">✕</button>
+    <div id="project-review-content"></div>
+  </div>
+</div>
+
+<!-- 3. Feedback Respond Modal -->
+<div id="modal-feedback-respond" class="modal-overlay hidden">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-feedback-respond')">✕</button>
+    <div id="feedback-respond-content"></div>
+  </div>
+</div>
+
+<!-- 4. Course View Modal -->
+<div id="modal-course-view" class="modal-overlay hidden">
+  <div class="modal-box modal-box-lg">
+    <button class="modal-close" onclick="closeModal('modal-course-view')">✕</button>
+    <div id="course-view-content"></div>
+  </div>
+</div>
+
+<!-- 5. Course Manage Content Modal -->
+<div id="modal-course-manage" class="modal-overlay hidden">
+  <div class="modal-box modal-box-lg">
+    <button class="modal-close" onclick="closeModal('modal-course-manage')">✕</button>
+    <div id="course-manage-content"></div>
+  </div>
+</div>
+
+<!-- 6. Course Form (Create/Edit) Modal -->
+<div id="modal-course-form" class="modal-overlay hidden">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-course-form')">✕</button>
+    <div id="course-form-content"></div>
+  </div>
+</div>
+
+<!-- 7. Recommend Training Modal -->
+<div id="modal-recommend-training" class="modal-overlay hidden">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-recommend-training')">✕</button>
+    <div id="recommend-training-content"></div>
+  </div>
+</div>
 
 <!-- ======================================================
      SCRIPTS

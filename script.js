@@ -43,6 +43,248 @@ const DEMO_TRAINER = {
   ]
 };
 
+const TRAINER_EXPERTISE = {
+  Python: 92,
+  FastAPI: 95,
+  'REST API': 94,
+  'Backend Development': 91,
+  Authentication: 87,
+  SQL: 76
+};
+
+const TRAINER_LEARNERS = [
+  {
+    id: 'l1',
+    name: 'Alex Johnson',
+    avatar: 'AJ',
+    role: 'Full Stack Developer',
+    readiness: 72,
+    progress: 58,
+    focus: 'REST API & Authentication',
+    status: 'Active',
+    lastActive: 'Today',
+    gapsCount: 4,
+    skills: { HTML:90, CSS:85, JavaScript:72, Python:65, SQL:48, 'REST API':40, Git:75, FastAPI:45, Authentication:35 },
+    completedModules: ['REST API Fundamentals'],
+    currentProject: 'Full Stack Task Manager',
+    practicalStatus: 'Pending',
+    competencyStatus: 'Not Verified'
+  },
+  {
+    id: 'l2',
+    name: 'Priya Das',
+    avatar: 'PD',
+    role: 'Backend Developer',
+    readiness: 81,
+    progress: 74,
+    focus: 'FastAPI',
+    status: 'Active',
+    lastActive: 'Yesterday',
+    gapsCount: 2,
+    skills: { Python:85, FastAPI:70, SQL:85, 'REST API':85, Git:80, Authentication:75 },
+    completedModules: ['REST API Fundamentals', 'SQL & Database Design'],
+    currentProject: 'E-commerce Microservices',
+    practicalStatus: 'Passed (88%)',
+    competencyStatus: 'Verified ✓'
+  },
+  {
+    id: 'l3',
+    name: 'Rahul Sharma',
+    avatar: 'RS',
+    role: 'Frontend Developer',
+    readiness: 64,
+    progress: 45,
+    focus: 'JavaScript',
+    status: 'Needs Attention',
+    lastActive: '5 days ago',
+    gapsCount: 5,
+    skills: { HTML:85, CSS:80, JavaScript:64, Git:70, Authentication:50 },
+    completedModules: ['HTML/CSS Basics'],
+    currentProject: 'Portfolio Website',
+    practicalStatus: 'Pending',
+    competencyStatus: 'Not Verified'
+  },
+  {
+    id: 'l4',
+    name: 'Sneha Roy',
+    avatar: 'SR',
+    role: 'Data Analyst',
+    readiness: 77,
+    progress: 69,
+    focus: 'SQL',
+    status: 'Active',
+    lastActive: '2 days ago',
+    gapsCount: 3,
+    skills: { Python:75, SQL:70, Git:80 },
+    completedModules: ['SQL & Database Design'],
+    currentProject: 'Data Analysis Pipeline',
+    practicalStatus: 'Passed (79%)',
+    competencyStatus: 'Verified ✓'
+  }
+];
+
+const PROJECT_REVIEWS_DATA = [
+  {
+    id: 'pr1',
+    learner: 'Alex Johnson',
+    project: 'Full Stack Task Manager',
+    submitted: '2 hours ago',
+    technologies: ['HTML', 'CSS', 'JavaScript', 'Python', 'FastAPI'],
+    completion: 92,
+    status: 'Pending Review',
+    description: 'A complete task management application with REST API backend, JWT authentication, and Supabase integration.',
+    criteria: {
+      functionality: 85,
+      codeQuality: 78,
+      uiUx: 88,
+      apiIntegration: 82,
+      security: 70
+    },
+    overallScore: 81,
+    feedback: ''
+  },
+  {
+    id: 'pr2',
+    learner: 'Arjun Patel',
+    project: 'Portfolio Website',
+    submitted: '1 day ago',
+    technologies: ['HTML', 'CSS', 'JavaScript'],
+    completion: 80,
+    status: 'Pending Review',
+    description: 'Responsive portfolio website showcasing projects with clean animations and contact form.',
+    criteria: {
+      functionality: 80,
+      codeQuality: 82,
+      uiUx: 85,
+      apiIntegration: 60,
+      security: 65
+    },
+    overallScore: 74,
+    feedback: ''
+  }
+];
+
+const TRAINER_FEEDBACK_DATA = [
+  {
+    id: 'fb1',
+    learner: 'Alex Johnson',
+    rating: 5,
+    comment: 'REST API modules were very useful and the practical assessment helped me understand my weak areas.',
+    date: 'Yesterday',
+    response: ''
+  },
+  {
+    id: 'fb2',
+    learner: 'Priya Das',
+    rating: 4,
+    comment: 'The learning resources were well structured. More FastAPI examples would be helpful.',
+    date: '3 days ago',
+    response: ''
+  },
+  {
+    id: 'fb3',
+    learner: 'Rahul Sharma',
+    rating: 4,
+    comment: 'The project review feedback helped me improve my implementation.',
+    date: '1 week ago',
+    response: ''
+  },
+  {
+    id: 'fb4',
+    learner: 'Sneha Roy',
+    rating: 5,
+    comment: 'Great platform and personalized learning path!',
+    date: '2 weeks ago',
+    response: ''
+  }
+];
+
+const TRAINER_COURSES_DATA = [
+  {
+    id: 'tc1',
+    title: 'REST API Fundamentals',
+    category: 'Backend Development',
+    instructor: 'Dr. Priya Sharma',
+    learners: 18,
+    modulesCount: 6,
+    completion: 76,
+    rating: 4.8,
+    status: 'Published',
+    description: 'Learn HTTP methods, status codes, request/response cycles and RESTful architectural principles.',
+    objectives: [
+      'Understand HTTP GET, POST, PUT, DELETE',
+      'Design clean resource URLs',
+      'Handle HTTP status codes correctly',
+      'Build JSON API endpoints'
+    ],
+    resources: [
+      { title: 'REST Design Guide (PDF)', type: 'document', url: 'https://restfulapi.net' },
+      { title: 'MDN HTTP Overview', type: 'external', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview' }
+    ],
+    modules: [
+      { title: '1. Introduction to REST', duration: '45m' },
+      { title: '2. Core HTTP Concepts', duration: '1h' },
+      { title: '3. Designing Endpoint URLs', duration: '1h 15m' },
+      { title: '4. Hands-on API Design', duration: '1h 30m' },
+      { title: '5. Assessment', duration: '45m' },
+      { title: '6. Final Project', duration: '2h' }
+    ]
+  },
+  {
+    id: 'tc2',
+    title: 'FastAPI Backend Development',
+    category: 'Python',
+    instructor: 'Dr. Priya Sharma',
+    learners: 14,
+    modulesCount: 8,
+    completion: 63,
+    rating: 4.7,
+    status: 'Published',
+    description: 'Build high-performance async Python web APIs with FastAPI and Pydantic validation.',
+    objectives: [
+      'Build asynchronous API routes',
+      'Use Pydantic request/response models',
+      'Implement FastAPI dependency injection',
+      'Auto-generate Swagger/OpenAPI docs'
+    ],
+    resources: [
+      { title: 'FastAPI Official Guide', type: 'external', url: 'https://fastapi.tiangolo.com' }
+    ],
+    modules: [
+      { title: '1. Getting Started with FastAPI', duration: '45m' },
+      { title: '2. Request & Response Models', duration: '1h' },
+      { title: '3. Dependency Injection', duration: '1h' },
+      { title: '4. Database Integration', duration: '2h' }
+    ]
+  },
+  {
+    id: 'tc3',
+    title: 'Authentication & Security',
+    category: 'Web Security',
+    instructor: 'Dr. Priya Sharma',
+    learners: 11,
+    modulesCount: 5,
+    completion: 58,
+    rating: 4.6,
+    status: 'Draft',
+    description: 'Implement JWT tokens, password hashing, CORS, and role-based access control.',
+    objectives: [
+      'Hash passwords securely with bcrypt',
+      'Issue and verify JWT access tokens',
+      'Protect routes with bearer authentication',
+      'Configure CORS & security headers'
+    ],
+    resources: [
+      { title: 'JWT Intro', type: 'external', url: 'https://jwt.io' }
+    ],
+    modules: [
+      { title: '1. Auth Fundamentals', duration: '45m' },
+      { title: '2. JWT Architecture', duration: '1h' },
+      { title: '3. Password Hashing', duration: '1h' }
+    ]
+  }
+];
+
 const ASSESSMENT_QUESTIONS = [
   { id:'q1', skill:'REST API',        question:'What HTTP method should be used to retrieve data from an API without side effects?',     options:['POST','GET','PUT','DELETE'],                       correct:1 },
   { id:'q2', skill:'REST API',        question:'A REST API returns status code 404. What does this mean?',                              options:['Server error','Unauthorized','Resource not found','Success'], correct:2 },
@@ -345,8 +587,13 @@ Issued by Capacity Connect · SIH 2026`;
     if (view) view.classList.add('active');
     const btn = [...document.querySelectorAll('.sidebar-btn')].find(b => b.textContent.toLowerCase().includes(tab.substring(0,4)));
     if (btn) btn.classList.add('active');
-    if (tab === 'learners') renderLearnerTable();
+
+    if (tab === 'learners') renderLearners();
     if (tab === 'projects') renderProjectReviews();
+    if (tab === 'feedback') renderTrainerFeedback('All');
+    if (tab === 'quality') renderTrainerQuality();
+    if (tab === 'courses') renderTrainerCourses();
+    if (tab === 'competency') renderCompetencyMap();
   },
 
   // Feedback
@@ -812,63 +1059,802 @@ function initOpportunities() {
 
 /* §15 ── TRAINER DASHBOARD ─────────────────────────────────────── */
 function initTrainer() {
-  renderLearnerTable();
+  renderLearners();
   renderProjectReviews();
+  renderTrainerFeedback('All');
+  renderTrainerQuality();
+  renderTrainerCourses();
+  renderCompetencyMap();
   wireStars();
 }
 
-function renderLearnerTable() {
-  const table = document.getElementById('learner-table');
-  if (!table) return;
-  table.innerHTML = `
-    <thead><tr>
-      <th>Learner</th><th>Target Role</th><th>Progress</th>
-      <th>Skill Readiness</th><th>Last Active</th>
-    </tr></thead>
-    <tbody>
-      ${DEMO_TRAINER.learners.map(l => `
-        <tr>
-          <td><strong>${escHtml(l.name)}</strong></td>
-          <td><span class="badge badge-blue">${escHtml(l.role)}</span></td>
-          <td>
-            <div class="progress-wrap" style="width:120px">
-              <div class="progress-fill" style="width:${l.progress}%"></div>
-            </div>
-            <small style="font-size:.75rem;color:var(--muted)">${l.progress}%</small>
-          </td>
-          <td><strong style="color:${l.skill_readiness>=80?'var(--accent)':'var(--warn)'}">${l.skill_readiness}%</strong></td>
-          <td><small class="muted">${escHtml(l.last_active)}</small></td>
-        </tr>
-      `).join('')}
-    </tbody>`;
+/* Toast notification utility */
+function showToast(msg, type = 'info') {
+  let container = document.querySelector('.toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
-function renderProjectReviews() {
-  const list = document.getElementById('project-review-list');
-  if (!list) return;
-  list.innerHTML = DEMO_TRAINER.projects_pending.map(p => `
-    <div class="project-review-card">
-      <div class="pr-info">
-        <h5>${escHtml(p.student)} — ${escHtml(p.project)}</h5>
-        <small>Submitted ${escHtml(p.submitted)}</small>
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.add('hidden');
+}
+
+/* 1. MY LEARNERS */
+function renderLearners() {
+  const container = document.getElementById('learner-cards-container');
+  if (!container) return;
+
+  const search = (document.getElementById('learner-search')?.value || '').toLowerCase();
+  const statusFilter = document.getElementById('learner-status-filter')?.value || 'All';
+  const roleFilter = document.getElementById('learner-role-filter')?.value || 'All';
+  const sortBy = document.getElementById('learner-sort')?.value || 'readiness';
+
+  let list = [...TRAINER_LEARNERS];
+
+  if (search) {
+    list = list.filter(l => l.name.toLowerCase().includes(search) || l.role.toLowerCase().includes(search));
+  }
+  if (statusFilter !== 'All') {
+    list = list.filter(l => l.status === statusFilter);
+  }
+  if (roleFilter !== 'All') {
+    list = list.filter(l => l.role === roleFilter);
+  }
+
+  if (sortBy === 'readiness') {
+    list.sort((a, b) => b.readiness - a.readiness);
+  } else if (sortBy === 'progress') {
+    list.sort((a, b) => b.progress - a.progress);
+  } else if (sortBy === 'name') {
+    list.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="panel" style="grid-column:1/-1;text-align:center;color:var(--muted)">No learners match your search criteria.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(l => `
+    <div class="learner-card">
+      <div>
+        <div class="learner-card-header">
+          <div class="learner-avatar">${escHtml(l.avatar)}</div>
+          <div class="learner-card-info">
+            <h4>${escHtml(l.name)}</h4>
+            <p>${escHtml(l.role)}</p>
+          </div>
+          <span class="badge ${l.status === 'Active' ? 'badge-green' : 'badge-orange'}" style="margin-left:auto;font-size:.7rem">${escHtml(l.status)}</span>
+        </div>
+        <div class="learner-metrics" style="margin-top:14px">
+          <div class="learner-metric-item">
+            <small>Skill Readiness</small>
+            <strong style="color:${l.readiness >= 80 ? 'var(--accent)' : 'var(--warn)'}">${l.readiness}%</strong>
+          </div>
+          <div class="learner-metric-item">
+            <small>Learning Progress</small>
+            <strong>${l.progress}%</strong>
+          </div>
+        </div>
+        <div class="learner-focus-tag mt-12">
+          <span>🎯 Current Focus:</span>
+          <strong style="color:var(--text)">${escHtml(l.focus)}</strong>
+        </div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-primary btn-sm" onclick="reviewProject(this,'approved')">Approve</button>
-        <button class="btn btn-secondary btn-sm" onclick="reviewProject(this,'feedback')">Give Feedback</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)">
+        <small style="color:var(--muted);font-size:.75rem">Active: ${escHtml(l.lastActive)}</small>
+        <button class="btn btn-secondary btn-sm" onclick="openLearnerProfileModal('${l.id}')">View Profile</button>
       </div>
     </div>
-  `).join('') || '<p class="muted">No projects pending review.</p>';
+  `).join('');
 }
 
-function reviewProject(btn, action) {
-  const card = btn.closest('.project-review-card');
-  if (action === 'approved') {
-    card.style.opacity = '0.5';
-    btn.textContent = '✓ Approved';
-    btn.disabled = true;
-  } else {
-    CC.trainerTab('feedback');
+function openLearnerProfileModal(learnerId) {
+  const learner = TRAINER_LEARNERS.find(l => l.id === learnerId);
+  if (!learner) return;
+
+  const content = document.getElementById('learner-profile-content');
+  if (!content) return;
+
+  const req = ROLE_REQUIREMENTS[learner.role] || {};
+
+  content.innerHTML = `
+    <div class="flex align-center gap-16 mb-20">
+      <div class="learner-avatar" style="width:56px;height:56px;font-size:1.2rem">${escHtml(learner.avatar)}</div>
+      <div>
+        <h3 style="margin:0">${escHtml(learner.name)}</h3>
+        <p style="margin:2px 0 0;color:var(--muted);font-size:.85rem">${escHtml(learner.role)} · <span class="badge ${learner.status === 'Active' ? 'badge-green' : 'badge-orange'}">${escHtml(learner.status)}</span></p>
+      </div>
+    </div>
+
+    <div class="stats-grid mb-20" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><small>Readiness</small><strong style="color:var(--accent)">${learner.readiness}%</strong></div>
+      <div class="stat-card"><small>Progress</small><strong>${learner.progress}%</strong></div>
+      <div class="stat-card"><small>Skill Gaps</small><strong style="color:var(--danger)">${learner.gapsCount}</strong></div>
+      <div class="stat-card"><small>Last Active</small><strong style="font-size:.85rem">${escHtml(learner.lastActive)}</strong></div>
+    </div>
+
+    <div class="panel mb-16">
+      <h4 class="mb-12">Skill Breakdown vs Required</h4>
+      <div style="display:grid;gap:10px">
+        ${Object.entries(learner.skills).map(([sk, cur]) => {
+          const target = req[sk] || 70;
+          const isGap = cur < target;
+          return `
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px">
+                <span>${escHtml(sk)}</span>
+                <span>Current: <strong>${cur}%</strong> / Target: ${target}% ${isGap ? `<span style="color:var(--danger)">(Gap: -${target - cur})</span>` : '<span style="color:var(--green)">✓</span>'}</span>
+              </div>
+              <div class="progress-wrap thin"><div class="progress-fill ${isGap ? 'yellow' : ''}" style="width:${cur}%"></div></div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" class="mb-16">
+      <div class="panel">
+        <h5 class="mb-8">Completed Modules</h5>
+        <ul style="padding-left:16px;font-size:.82rem;color:var(--muted2);margin:0">
+          ${learner.completedModules.map(m => `<li>${escHtml(m)}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="panel">
+        <h5 class="mb-8">Status & Verification</h5>
+        <div style="font-size:.82rem;color:var(--muted2);display:grid;gap:6px">
+          <div>Project: <strong>${escHtml(learner.currentProject)}</strong></div>
+          <div>Practical: <strong>${escHtml(learner.practicalStatus)}</strong></div>
+          <div>Competency: <strong>${escHtml(learner.competencyStatus)}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:right">
+      <button class="btn btn-secondary" onclick="closeModal('modal-learner-profile')">Close</button>
+    </div>
+  `;
+
+  openModal('modal-learner-profile');
+}
+
+/* 2. PROJECT REVIEWS */
+function renderProjectReviews() {
+  const container = document.getElementById('project-review-list');
+  if (!container) return;
+
+  if (PROJECT_REVIEWS_DATA.length === 0) {
+    container.innerHTML = '<div class="panel" style="text-align:center;color:var(--muted)">No projects pending review.</div>';
+    return;
   }
+
+  container.innerHTML = PROJECT_REVIEWS_DATA.map(p => `
+    <div class="project-review-card panel mb-16">
+      <div class="flex justify-between align-center flex-wrap gap-12 mb-12">
+        <div>
+          <span class="badge ${p.status === 'Pending Review' ? 'badge-orange' : p.status === 'Reviewed' ? 'badge-green' : 'badge-red'}">${escHtml(p.status)}</span>
+          <h4 style="margin:6px 0 2px">${escHtml(p.learner)} — ${escHtml(p.project)}</h4>
+          <small style="color:var(--muted)">Submitted ${escHtml(p.submitted)} · Completion: ${p.completion}%</small>
+        </div>
+        <div>
+          <button class="btn ${p.status === 'Pending Review' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="openProjectReviewModal('${p.id}')">
+            ${p.status === 'Pending Review' ? 'Review Project' : 'View / Edit Review'}
+          </button>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted2);margin-bottom:12px">${escHtml(p.description)}</p>
+      <div class="flex gap-6 flex-wrap">
+        ${p.technologies.map(t => `<span class="badge badge-accent" style="font-size:.72rem">${escHtml(t)}</span>`).join('')}
+      </div>
+      ${p.status !== 'Pending Review' ? `
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:.82rem">
+          Overall Score: <strong style="color:var(--accent)">${p.overallScore}/100</strong>
+          ${p.feedback ? ` · <span style="color:var(--muted2)">"${escHtml(p.feedback)}"</span>` : ''}
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+function openProjectReviewModal(projId) {
+  const proj = PROJECT_REVIEWS_DATA.find(p => p.id === projId);
+  if (!proj) return;
+
+  const content = document.getElementById('project-review-content');
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="mb-16">
+      <span class="eyebrow">PROJECT EVALUATION</span>
+      <h3 style="margin:4px 0">${escHtml(proj.project)}</h3>
+      <p style="font-size:.85rem;color:var(--muted)">Submitted by <strong>${escHtml(proj.learner)}</strong> · ${escHtml(proj.submitted)}</p>
+    </div>
+
+    <div class="review-modal-grid">
+      <div class="panel">
+        <h5 class="mb-12">Submission Details</h5>
+        <p style="font-size:.82rem;color:var(--muted2);margin-bottom:12px">${escHtml(proj.description)}</p>
+        <div class="mb-12">
+          <small style="color:var(--muted);display:block;margin-bottom:4px">Technologies Used:</small>
+          <div class="flex gap-6 flex-wrap">
+            ${proj.technologies.map(t => `<span class="badge badge-blue">${escHtml(t)}</span>`).join('')}
+          </div>
+        </div>
+        <div>
+          <small style="color:var(--muted);display:block;margin-bottom:4px">Links:</small>
+          <a href="https://github.com" target="_blank" rel="noopener" class="resource-link" style="font-size:.8rem">↗ GitHub Repository</a>
+          <a href="https://vercel.app" target="_blank" rel="noopener" class="resource-link" style="font-size:.8rem;margin-left:8px">↗ Live Demo</a>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h5 class="mb-12">Evaluation Criteria</h5>
+        
+        <div class="criteria-input-row">
+          <label>Functionality</label>
+          <input type="range" id="rev-func" min="0" max="100" value="${proj.criteria.functionality}" oninput="updateReviewOverallScore('${proj.id}')">
+          <span class="criteria-score-val" id="val-func">${proj.criteria.functionality}%</span>
+        </div>
+
+        <div class="criteria-input-row">
+          <label>Code Quality</label>
+          <input type="range" id="rev-code" min="0" max="100" value="${proj.criteria.codeQuality}" oninput="updateReviewOverallScore('${proj.id}')">
+          <span class="criteria-score-val" id="val-code">${proj.criteria.codeQuality}%</span>
+        </div>
+
+        <div class="criteria-input-row">
+          <label>UI / UX</label>
+          <input type="range" id="rev-ui" min="0" max="100" value="${proj.criteria.uiUx}" oninput="updateReviewOverallScore('${proj.id}')">
+          <span class="criteria-score-val" id="val-ui">${proj.criteria.uiUx}%</span>
+        </div>
+
+        <div class="criteria-input-row">
+          <label>API Integration</label>
+          <input type="range" id="rev-api" min="0" max="100" value="${proj.criteria.apiIntegration}" oninput="updateReviewOverallScore('${proj.id}')">
+          <span class="criteria-score-val" id="val-api">${proj.criteria.apiIntegration}%</span>
+        </div>
+
+        <div class="criteria-input-row">
+          <label>Security</label>
+          <input type="range" id="rev-sec" min="0" max="100" value="${proj.criteria.security}" oninput="updateReviewOverallScore('${proj.id}')">
+          <span class="criteria-score-val" id="val-sec">${proj.criteria.security}%</span>
+        </div>
+
+        <div style="background:var(--bg3);padding:12px;border-radius:var(--radius-sm);margin:16px 0;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:700">Calculated Overall Score:</span>
+          <span style="font-size:1.2rem;font-weight:900;color:var(--accent)" id="val-overall">${proj.overallScore} / 100</span>
+        </div>
+
+        <div class="modal-form-row">
+          <label>Feedback & Comments for Learner</label>
+          <textarea id="rev-feedback" rows="3" placeholder="Write feedback on strengths, areas to improve, and code quality...">${escHtml(proj.feedback || 'Strong implementation. Good API architecture and clean code structure.')}</textarea>
+        </div>
+
+        <div class="flex gap-8 mt-16">
+          <button class="btn btn-primary btn-full" onclick="submitProjectReview('${proj.id}', 'Reviewed')">Approve Project</button>
+          <button class="btn btn-secondary btn-full" onclick="submitProjectReview('${proj.id}', 'Changes Requested')">Request Changes</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  openModal('modal-project-review');
+}
+
+function updateReviewOverallScore(projId) {
+  const func = parseInt(document.getElementById('rev-func')?.value || 0);
+  const code = parseInt(document.getElementById('rev-code')?.value || 0);
+  const ui   = parseInt(document.getElementById('rev-ui')?.value || 0);
+  const api  = parseInt(document.getElementById('rev-api')?.value || 0);
+  const sec  = parseInt(document.getElementById('rev-sec')?.value || 0);
+
+  document.getElementById('val-func').textContent = func + '%';
+  document.getElementById('val-code').textContent = code + '%';
+  document.getElementById('val-ui').textContent   = ui + '%';
+  document.getElementById('val-api').textContent  = api + '%';
+  document.getElementById('val-sec').textContent = sec + '%';
+
+  const overall = Math.round((func + code + ui + api + sec) / 5);
+  document.getElementById('val-overall').textContent = overall + ' / 100';
+}
+
+function submitProjectReview(projId, newStatus) {
+  const proj = PROJECT_REVIEWS_DATA.find(p => p.id === projId);
+  if (!proj) return;
+
+  const func = parseInt(document.getElementById('rev-func')?.value || 0);
+  const code = parseInt(document.getElementById('rev-code')?.value || 0);
+  const ui   = parseInt(document.getElementById('rev-ui')?.value || 0);
+  const api  = parseInt(document.getElementById('rev-api')?.value || 0);
+  const sec  = parseInt(document.getElementById('rev-sec')?.value || 0);
+  const feedback = document.getElementById('rev-feedback')?.value.trim() || '';
+
+  proj.criteria = { functionality: func, codeQuality: code, uiUx: ui, apiIntegration: api, security: sec };
+  proj.overallScore = Math.round((func + code + ui + api + sec) / 5);
+  proj.status = newStatus;
+  proj.feedback = feedback;
+
+  closeModal('modal-project-review');
+  renderProjectReviews();
+  showToast(`Project ${newStatus === 'Reviewed' ? 'Approved (Score: ' + proj.overallScore + '/100)' : 'marked as Changes Requested'}`, newStatus === 'Reviewed' ? 'success' : 'info');
+}
+
+/* 3. FEEDBACK */
+let currentFeedbackFilter = 'All';
+
+function filterTrainerFeedback(filter, btn) {
+  currentFeedbackFilter = filter;
+  document.querySelectorAll('.feedback-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTrainerFeedback(filter);
+}
+
+function renderTrainerFeedback(filter = 'All') {
+  const container = document.getElementById('feedback-list-container');
+  if (!container) return;
+
+  let list = [...TRAINER_FEEDBACK_DATA];
+
+  if (filter === '5 Stars') list = list.filter(f => f.rating === 5);
+  if (filter === '4 Stars') list = list.filter(f => f.rating === 4);
+  if (filter === '3 Stars') list = list.filter(f => f.rating === 3);
+  if (filter === 'Needs Attention') list = list.filter(f => f.rating < 4);
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="panel" style="text-align:center;color:var(--muted)">No feedback found for this filter.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(f => `
+    <div class="panel mb-16">
+      <div class="flex justify-between align-center mb-8 flex-wrap gap-8">
+        <div>
+          <strong>${escHtml(f.learner)}</strong>
+          <small style="color:var(--muted);margin-left:8px">${escHtml(f.date)}</small>
+        </div>
+        <div style="color:#f59e0b;font-size:1rem">${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}</div>
+      </div>
+      <p style="font-size:.88rem;color:var(--muted2);margin-bottom:12px">"${escHtml(f.comment)}"</p>
+      ${f.response ? `
+        <div style="background:var(--bg3);padding:10px 14px;border-radius:var(--radius-sm);font-size:.82rem;border-left:3px solid var(--accent)">
+          <strong style="color:var(--accent)">Your Response:</strong> "${escHtml(f.response)}"
+        </div>
+      ` : `
+        <button class="btn btn-secondary btn-sm" onclick="openFeedbackRespondModal('${f.id}')">💬 Respond</button>
+      `}
+    </div>
+  `).join('');
+}
+
+function openFeedbackRespondModal(fbId) {
+  const item = TRAINER_FEEDBACK_DATA.find(f => f.id === fbId);
+  if (!item) return;
+
+  const content = document.getElementById('feedback-respond-content');
+  if (!content) return;
+
+  content.innerHTML = `
+    <h4 class="mb-12">Respond to ${escHtml(item.learner)}</h4>
+    <div class="panel mb-16" style="background:var(--bg3);padding:14px">
+      <div style="color:#f59e0b;font-size:1rem;margin-bottom:4px">${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}</div>
+      <p style="font-size:.85rem;color:var(--muted2);margin:0">"${escHtml(item.comment)}"</p>
+    </div>
+    <div class="modal-form-row">
+      <label>Your Response</label>
+      <textarea id="resp-text" rows="3" placeholder="Write a supportive response or answer their questions..."></textarea>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-primary btn-full" onclick="submitFeedbackResponse('${item.id}')">Send Response</button>
+    </div>
+  `;
+
+  openModal('modal-feedback-respond');
+}
+
+function submitFeedbackResponse(fbId) {
+  const item = TRAINER_FEEDBACK_DATA.find(f => f.id === fbId);
+  const resp = document.getElementById('resp-text')?.value.trim();
+  if (!item || !resp) {
+    showToast('Please enter a response message.', 'error');
+    return;
+  }
+  item.response = resp;
+  closeModal('modal-feedback-respond');
+  renderTrainerFeedback(currentFeedbackFilter);
+  showToast(`Response sent to ${item.learner}!`, 'success');
+}
+
+/* 4. TRAINER QUALITY */
+function renderTrainerQuality() {
+  // Static visual rendering already in HTML
+}
+
+/* 5. MY COURSES */
+function renderTrainerCourses() {
+  const container = document.getElementById('trainer-course-list');
+  if (!container) return;
+
+  if (TRAINER_COURSES_DATA.length === 0) {
+    container.innerHTML = '<div class="panel" style="text-align:center;color:var(--muted)">No courses created yet.</div>';
+    return;
+  }
+
+  container.innerHTML = TRAINER_COURSES_DATA.map(c => `
+    <div class="course-card-trainer">
+      <div>
+        <span class="badge ${c.status === 'Published' ? 'badge-green' : 'badge-orange'}">${escHtml(c.status)}</span>
+        <h4 style="margin:6px 0 2px">${escHtml(c.title)}</h4>
+        <p>${escHtml(c.description)}</p>
+        <div class="course-meta">
+          Category: ${escHtml(c.category)} · ${c.learners} Learners · ${c.modulesCount} Modules · Avg Rating: ${c.rating} ★ · Completion: ${c.completion}%
+        </div>
+      </div>
+      <div class="course-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openCourseViewModal('${c.id}')">View</button>
+        <button class="btn btn-secondary btn-sm" onclick="openCourseEditModal('${c.id}')">Edit</button>
+        <button class="btn btn-primary btn-sm" onclick="openCourseManageModal('${c.id}')">Manage Content</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCourseViewModal(courseId) {
+  const course = TRAINER_COURSES_DATA.find(c => c.id === courseId);
+  if (!course) return;
+
+  const content = document.getElementById('course-view-content');
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="mb-16">
+      <span class="badge ${course.status === 'Published' ? 'badge-green' : 'badge-orange'} mb-8">${escHtml(course.status)}</span>
+      <h3 style="margin:4px 0">${escHtml(course.title)}</h3>
+      <p style="color:var(--muted);font-size:.85rem">${escHtml(course.category)} · Instructor: <strong>${escHtml(course.instructor)}</strong></p>
+    </div>
+
+    <div class="stats-grid mb-20" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><small>Enrolled Learners</small><strong>${course.learners}</strong></div>
+      <div class="stat-card"><small>Completion Rate</small><strong style="color:var(--accent)">${course.completion}%</strong></div>
+      <div class="stat-card"><small>Rating</small><strong style="color:#f59e0b">${course.rating} ★</strong></div>
+      <div class="stat-card"><small>Total Modules</small><strong>${course.modules.length}</strong></div>
+    </div>
+
+    <div class="panel mb-16">
+      <h5 class="mb-8">Course Description</h5>
+      <p style="font-size:.85rem;color:var(--muted2);margin:0">${escHtml(course.description)}</p>
+    </div>
+
+    <div class="panel mb-16">
+      <h5 class="mb-8">Learning Objectives</h5>
+      <ul style="padding-left:18px;font-size:.82rem;color:var(--muted2);margin:0">
+        ${course.objectives.map(o => `<li>${escHtml(o)}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="panel mb-16">
+      <h5 class="mb-8">Course Curriculum / Modules</h5>
+      <div style="display:grid;gap:8px">
+        ${course.modules.map(m => `
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg3);border-radius:var(--radius-sm);font-size:.85rem">
+            <span>${escHtml(m.title)}</span>
+            <small style="color:var(--muted)">${escHtml(m.duration)}</small>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div style="text-align:right">
+      <button class="btn btn-secondary" onclick="closeModal('modal-course-view')">Close</button>
+    </div>
+  `;
+
+  openModal('modal-course-view');
+}
+
+function openCourseManageModal(courseId) {
+  const course = TRAINER_COURSES_DATA.find(c => c.id === courseId);
+  if (!course) return;
+
+  const content = document.getElementById('course-manage-content');
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="mb-16">
+      <span class="eyebrow">CONTENT MANAGEMENT</span>
+      <h3 style="margin:4px 0">${escHtml(course.title)}</h3>
+      <p style="font-size:.85rem;color:var(--muted)">Add or edit modules, hands-on exercises, and external learning resources.</p>
+    </div>
+
+    <div class="panel mb-16">
+      <div class="flex justify-between align-center mb-12">
+        <h5 style="margin:0">Modules List (${course.modules.length})</h5>
+        <button class="btn btn-secondary btn-sm" onclick="addCourseModulePrompt('${course.id}')">+ Add Module</button>
+      </div>
+      <div style="display:grid;gap:8px">
+        ${course.modules.map((m, idx) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:var(--radius-sm);font-size:.85rem">
+            <div>
+              <strong>${escHtml(m.title)}</strong>
+              <small style="color:var(--muted);margin-left:8px">(${escHtml(m.duration)})</small>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteCourseModule('${course.id}', ${idx})">Delete</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="panel mb-16">
+      <div class="flex justify-between align-center mb-12">
+        <h5 style="margin:0">Resources (${course.resources.length})</h5>
+        <button class="btn btn-secondary btn-sm" onclick="addCourseResourcePrompt('${course.id}')">+ Add Resource</button>
+      </div>
+      <div style="display:grid;gap:8px">
+        ${course.resources.map((r, idx) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:var(--radius-sm);font-size:.85rem">
+            <div>
+              <strong>${escHtml(r.title)}</strong>
+              <small style="color:var(--muted);margin-left:8px">(${escHtml(r.type)})</small>
+            </div>
+            <a href="${r.url}" target="_blank" rel="noopener" class="resource-link" style="font-size:.8rem">↗ Link</a>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div style="text-align:right">
+      <button class="btn btn-primary" onclick="closeModal('modal-course-manage')">Done</button>
+    </div>
+  `;
+
+  openModal('modal-course-manage');
+}
+
+function addCourseModulePrompt(courseId) {
+  const title = prompt('Enter module title (e.g. 5. Advanced Practice):');
+  if (!title) return;
+  const duration = prompt('Enter estimated duration (e.g. 1h 15m):') || '1h';
+
+  const course = TRAINER_COURSES_DATA.find(c => c.id === courseId);
+  if (course) {
+    course.modules.push({ title, duration });
+    course.modulesCount = course.modules.length;
+    openCourseManageModal(courseId);
+    renderTrainerCourses();
+    showToast('Module added successfully!', 'success');
+  }
+}
+
+function deleteCourseModule(courseId, modIdx) {
+  const course = TRAINER_COURSES_DATA.find(c => c.id === courseId);
+  if (course && course.modules[modIdx]) {
+    course.modules.splice(modIdx, 1);
+    course.modulesCount = course.modules.length;
+    openCourseManageModal(courseId);
+    renderTrainerCourses();
+    showToast('Module deleted', 'info');
+  }
+}
+
+function addCourseResourcePrompt(courseId) {
+  const title = prompt('Enter resource title (e.g. FastAPI Cheat Sheet):');
+  if (!title) return;
+  const url = prompt('Enter URL (e.g. https://fastapi.tiangolo.com):') || 'https://example.com';
+
+  const course = TRAINER_COURSES_DATA.find(c => c.id === courseId);
+  if (course) {
+    course.resources.push({ title, type: 'external', url });
+    openCourseManageModal(courseId);
+    renderTrainerCourses();
+    showToast('Resource added!', 'success');
+  }
+}
+
+function openCreateCourseModal() {
+  const content = document.getElementById('course-form-content');
+  if (!content) return;
+
+  content.innerHTML = `
+    <h4 class="mb-16">Create New Course</h4>
+    <div class="modal-form-row">
+      <label>Course Title</label>
+      <input type="text" id="new-course-title" placeholder="e.g. Advanced Microservices with FastAPI">
+    </div>
+    <div class="modal-form-row">
+      <label>Category</label>
+      <input type="text" id="new-course-cat" placeholder="e.g. Backend Development">
+    </div>
+    <div class="modal-form-row">
+      <label>Description</label>
+      <textarea id="new-course-desc" rows="3" placeholder="What will students learn in this course?"></textarea>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveNewCourse()">Publish Course</button>
+  `;
+
+  openModal('modal-course-form');
+}
+
+function saveNewCourse() {
+  const title = document.getElementById('new-course-title')?.value.trim();
+  const cat   = document.getElementById('new-course-cat')?.value.trim() || 'Backend Development';
+  const desc  = document.getElementById('new-course-desc')?.value.trim() || 'Comprehensive course on modern backend architecture.';
+
+  if (!title) {
+    showToast('Please enter a course title.', 'error');
+    return;
+  }
+
+  const newCourse = {
+    id: 'tc_' + Date.now(),
+    title: title,
+    category: cat,
+    instructor: 'Dr. Priya Sharma',
+    learners: 0,
+    modulesCount: 4,
+    completion: 0,
+    rating: 5.0,
+    status: 'Published',
+    description: desc,
+    objectives: ['Master key domain skills', 'Build real-world hands-on exercises'],
+    resources: [{ title: 'Course Guide', type: 'document', url: 'https://example.com' }],
+    modules: [
+      { title: '1. Course Overview', duration: '30m' },
+      { title: '2. Fundamentals', duration: '1h' },
+      { title: '3. Hands-on Practice', duration: '1h 30m' },
+      { title: '4. Final Assessment', duration: '45m' }
+    ]
+  };
+
+  TRAINER_COURSES_DATA.unshift(newCourse);
+  closeModal('modal-course-form');
+  renderTrainerCourses();
+  showToast(`Course "${title}" created and published!`, 'success');
+}
+
+function openCourseEditModal(courseId) {
+  showToast('Course content management opened.', 'info');
+  openCourseManageModal(courseId);
+}
+
+/* 6. COMPETENCY MAP */
+function calculateCompetencyMatches() {
+  return TRAINER_LEARNERS.map(l => {
+    const req = ROLE_REQUIREMENTS[l.role] || {};
+    const gaps = [];
+    
+    Object.entries(req).forEach(([sk, reqVal]) => {
+      const curVal = l.skills[sk] || 0;
+      if (curVal < reqVal) {
+        gaps.push({ skill: sk, current: curVal, required: reqVal, gap: reqVal - curVal });
+      }
+    });
+
+    let totalScore = 0;
+    let count = 0;
+
+    gaps.forEach(g => {
+      const exp = TRAINER_EXPERTISE[g.skill] || 70;
+      totalScore += exp;
+      count++;
+    });
+
+    const matchPct = count > 0 ? Math.round(totalScore / count) : 90;
+    let badgeClass = 'strong';
+    let matchText = 'Strong Match';
+
+    if (matchPct < 60) {
+      badgeClass = 'low';
+      matchText = 'Low Match';
+    } else if (matchPct < 80) {
+      badgeClass = 'good';
+      matchText = 'Good Match';
+    }
+
+    return {
+      learner: l,
+      gaps: gaps,
+      matchPct: matchPct,
+      matchBadge: badgeClass,
+      matchText: matchText
+    };
+  }).sort((a, b) => b.matchPct - a.matchPct);
+}
+
+function renderCompetencyMap() {
+  const container = document.getElementById('competency-match-list');
+  if (!container) return;
+
+  const matches = calculateCompetencyMatches();
+
+  container.innerHTML = matches.map(m => `
+    <div class="competency-flow-card">
+      <div class="competency-flow-header">
+        <div>
+          <h4 style="margin:0">${escHtml(m.learner.name)}</h4>
+          <small style="color:var(--muted)">Target Role: <strong>${escHtml(m.learner.role)}</strong> · Readiness: ${m.learner.readiness}%</small>
+        </div>
+        <span class="match-badge ${m.matchBadge}">${m.matchPct}% ${m.matchText}</span>
+      </div>
+
+      <div class="competency-flow-grid">
+        <div class="flow-step-box">
+          <small>Learner Skill Gaps</small>
+          <div>
+            ${m.gaps.map(g => `<span class="gap-chip teachable">${escHtml(g.skill)} (-${g.gap}pts)</span>`).join('')}
+          </div>
+        </div>
+        <div class="competency-flow-arrow">➔</div>
+        <div class="flow-step-box">
+          <small>Trainer Expertise</small>
+          <div>
+            ${m.gaps.map(g => `<span class="gap-chip teachable">${escHtml(g.skill)}: ${TRAINER_EXPERTISE[g.skill] || 70}%</span>`).join('')}
+          </div>
+        </div>
+        <div class="competency-flow-arrow">➔</div>
+        <div class="flow-step-box" style="text-align:right">
+          <small>Recommendation</small>
+          <strong style="color:var(--accent);display:block;margin-bottom:6px">${m.matchPct}% Competency Overlap</strong>
+          <button class="btn btn-primary btn-sm" onclick="openRecommendModal('${m.learner.id}')">Recommend Training</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openRecommendModal(learnerId) {
+  const learner = TRAINER_LEARNERS.find(l => l.id === learnerId);
+  if (!learner) return;
+
+  const content = document.getElementById('recommend-training-content');
+  if (!content) return;
+
+  const req = ROLE_REQUIREMENTS[learner.role] || {};
+  const gaps = Object.entries(req).filter(([sk, rVal]) => (learner.skills[sk] || 0) < rVal).map(([sk]) => sk);
+
+  content.innerHTML = `
+    <h4 class="mb-12">Recommend Training for ${escHtml(learner.name)}</h4>
+    <p style="font-size:.85rem;color:var(--muted2);margin-bottom:16px">
+      Target Role: <strong>${escHtml(learner.role)}</strong> · Detected Gaps: ${gaps.join(', ')}
+    </p>
+
+    <div class="panel mb-16" style="background:var(--bg3);padding:14px">
+      <h5 class="mb-8">Recommended Courses & Modules</h5>
+      <ul style="padding-left:18px;font-size:.82rem;color:var(--text);margin:0">
+        <li>REST API Fundamentals</li>
+        <li>FastAPI Backend Development</li>
+        <li>Authentication & Security</li>
+      </ul>
+    </div>
+
+    <div class="modal-form-row">
+      <label>Personalized Recommendation Note</label>
+      <textarea id="rec-note" rows="3" placeholder="Write a note to ${escHtml(learner.name)} explaining why these courses will bridge their gaps..."></textarea>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="sendRecommendation('${learner.id}')">Send Recommendation</button>
+  `;
+
+  openModal('modal-recommend-training');
+}
+
+function sendRecommendation(learnerId) {
+  const learner = TRAINER_LEARNERS.find(l => l.id === learnerId);
+  closeModal('modal-recommend-training');
+  showToast(`Training recommendations successfully sent to ${learner ? learner.name : 'learner'}!`, 'success');
 }
 
 function wireStars() {
